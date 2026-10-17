@@ -1,6 +1,6 @@
 # Phoenix Labs Academy
 
-![Build Version](https://img.shields.io/badge/version-1.0.2-acid--lime.svg)
+![Build Version](https://img.shields.io/badge/version-1.1.0-acid--lime.svg)
 ![Runtime](https://img.shields.io/badge/runtime-Cloudflare%20Workerd-orange.svg)
 ![Database](https://img.shields.io/badge/database-Cloudflare%20D1%20SQLite-blue.svg)
 ![Auth](https://img.shields.io/badge/auth-Zero%20Trust%20Access-purple.svg)
@@ -83,7 +83,17 @@ npm run ingest -- sample_module.md --remote
 
 ---
 
-## 3. Deploying to Cloudflare Production
+## 3. Student Profile & Cross-Course Telemetry
+
+Phoenix Labs Academy includes a dedicated **Student Profile** view tracking learner progression across all operational domains:
+- **Global Mastery Metrics**: Overall curriculum completion percentage, total labs mastered vs in-flight, total time invested, and verification attempt accuracy.
+- **Cross-Course Curricula Breakdown**: Granular status tracking across every ingested track (Penetration Testing, Threat Hunting, Malware Engineering, Capstone Triage).
+- **Direct Lab Launch**: One-click deep link to jump directly into any specific module workbench from the profile matrix.
+- **Edge Telemetry Audit Log**: Real-time session access log queried from Cloudflare D1 via `GET /api/student/profile`.
+
+---
+
+## 4. Deploying to Cloudflare Production
 
 ### Step 1: Provision Cloudflare D1 Database
 ```bash

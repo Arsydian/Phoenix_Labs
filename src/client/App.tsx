@@ -4,6 +4,7 @@ import { ModuleSidebar } from './components/ModuleSidebar';
 import { TheoryPane } from './components/TheoryPane';
 import { LabRegistry } from './components/labs/LabRegistry';
 import { IngestionModal } from './components/IngestionModal';
+import { StudentProfile } from './components/StudentProfile';
 import { HelpCircle, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
   const [modules, setModules] = useState<any[]>([]);
   const [activeTrackId, setActiveTrackId] = useState<string>('track-pentest');
   const [activeModule, setActiveModule] = useState<any | null>(null);
+  const [viewMode, setViewMode] = useState<'workbench' | 'profile'>('workbench');
 
   // Interactive Lab State
   const [submission, setSubmission] = useState('');
@@ -158,15 +160,28 @@ export default function App() {
           setActiveTrackId(tId);
           const first = modules.find((m) => m.track_id === tId);
           if (first) loadModule(first.slug);
+          setViewMode('workbench');
         }}
         completedCount={completedCount}
         totalModules={modules.length}
         onOpenIngest={() => setShowIngestModal(true)}
-        appVersion="1.0.2"
+        appVersion="1.1.0"
+        viewMode={viewMode}
+        onSelectView={setViewMode}
       />
 
-      {/* Main 3-Pane Split SecOps Workbench */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+      {viewMode === 'profile' ? (
+        <StudentProfile
+          onNavigateToModule={(trackId, moduleSlug) => {
+            setActiveTrackId(trackId);
+            loadModule(moduleSlug);
+            setViewMode('workbench');
+          }}
+          onReturnToWorkbench={() => setViewMode('workbench')}
+        />
+      ) : (
+        /* Main 3-Pane Split SecOps Workbench */
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         {/* Left Sidebar */}
         <ModuleSidebar
           trackTitle={activeTrack?.title}
@@ -275,6 +290,7 @@ export default function App() {
           )}
         </section>
       </div>
+      )}
 
       {/* Course Material Ingestion Modal */}
       <IngestionModal

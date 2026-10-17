@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Shield, ChevronDown, Check, PlusCircle, BookOpen, Layers } from 'lucide-react';
+import { Shield, ChevronDown, Check, PlusCircle, BookOpen, Layers, Terminal, User } from 'lucide-react';
 
 interface Track {
   id: string;
@@ -18,6 +18,8 @@ interface NavbarProps {
   totalModules: number;
   onOpenIngest: () => void;
   appVersion?: string;
+  viewMode?: 'workbench' | 'profile';
+  onSelectView?: (mode: 'workbench' | 'profile') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -28,7 +30,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   completedCount,
   totalModules,
   onOpenIngest,
-  appVersion = '1.0.2'
+  appVersion = '1.1.0',
+  viewMode = 'workbench',
+  onSelectView
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -56,31 +60,59 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="w-7 h-7 rounded-[6px] bg-[#0f1011] border border-[#23252a] flex items-center justify-center text-[#e4f222] shadow-sm">
           <Shield className="w-4 h-4 text-[#e4f222]" />
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-medium tracking-tight text-sm text-[#ffffff]">
-              PHOENIX LABS // ACADEMY
-            </span>
-            <span className="text-[10px] font-mono bg-[#161718] text-[#8a8f98] px-1.5 py-0.5 rounded-[4px] border border-[#23252a]">
-              v{displayVersion}
-            </span>
-            {student && (
-              <span className="text-[11px] font-mono bg-[#0f1011] text-[#8a8f98] px-2 py-0.5 rounded-[4px] border border-[#23252a] hidden sm:inline-flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#27a644]" />
-                <span className="text-[#62666d]">{student.zero_trust_enforced ? 'Zero Trust' : 'Operator'}:</span>
-                <span className="text-[#d0d6e0]">{student.email}</span>
-                {student.isAdmin && (
-                  <span className="ml-1 px-1 bg-[#e4f222]/10 text-[#e4f222] border border-[#e4f222]/30 rounded-[3px] text-[9px] font-medium">
-                    ADMIN
-                  </span>
-                )}
-              </span>
-            )}
-          </div>
-          <p className="text-[11px] text-[#62666d] hidden sm:block tracking-tight">
-            Midnight Precision Cybersecurity & Incident Triage Platform
-          </p>
+        <div className="flex items-center gap-2">
+          <span className="font-medium tracking-tight text-sm text-[#ffffff]">
+            PHOENIX LABS // ACADEMY
+          </span>
+          <span className="text-[10px] font-mono bg-[#161718] text-[#8a8f98] px-1.5 py-0.5 rounded-[4px] border border-[#23252a]">
+            v{displayVersion}
+          </span>
+          {student && (
+            <button
+              type="button"
+              onClick={() => onSelectView?.('profile')}
+              className="text-[11px] font-mono bg-[#0f1011] hover:bg-[#161718] text-[#8a8f98] hover:text-[#ffffff] px-2 py-0.5 rounded-[4px] border border-[#23252a] hover:border-[#383b3f] hidden sm:inline-flex items-center gap-1.5 transition cursor-pointer"
+              title="Open Student Profile"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#27a644]" />
+              <span className="text-[#62666d]">{student.zero_trust_enforced ? 'Zero Trust' : 'Operator'}:</span>
+              <span className="text-[#d0d6e0]">{student.email}</span>
+              {student.isAdmin && (
+                <span className="ml-1 px-1 bg-[#e4f222]/10 text-[#e4f222] border border-[#e4f222]/30 rounded-[3px] text-[9px] font-medium">
+                  ADMIN
+                </span>
+              )}
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Center Nav: View Switcher (Workbench vs Profile) */}
+      <div className="flex items-center bg-[#0f1011] border border-[#23252a] rounded-[6px] p-0.5">
+        <button
+          type="button"
+          onClick={() => onSelectView?.('workbench')}
+          className={`flex items-center gap-1.5 px-3 py-1 text-xs rounded-[4px] transition ${
+            viewMode === 'workbench'
+              ? 'bg-[#161718] text-[#ffffff] font-medium border border-[#23252a]'
+              : 'text-[#8a8f98] hover:text-[#ffffff]'
+          }`}
+        >
+          <Terminal className="w-3.5 h-3.5 text-[#e4f222]" />
+          <span>Workbench</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onSelectView?.('profile')}
+          className={`flex items-center gap-1.5 px-3 py-1 text-xs rounded-[4px] transition ${
+            viewMode === 'profile'
+              ? 'bg-[#161718] text-[#ffffff] font-medium border border-[#23252a]'
+              : 'text-[#8a8f98] hover:text-[#ffffff]'
+          }`}
+        >
+          <User className="w-3.5 h-3.5 text-[#02b8cc]" />
+          <span>Student Profile</span>
+        </button>
       </div>
 
       {/* Course Topics Dropdown Menu */}
