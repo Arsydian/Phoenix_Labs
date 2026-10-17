@@ -1,7 +1,7 @@
 {
   "name": "phoenix-labs-academy",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "Phoenix Labs Academy — Edge-Native Cybersecurity Operations & Learning Platform",
   "scripts": {

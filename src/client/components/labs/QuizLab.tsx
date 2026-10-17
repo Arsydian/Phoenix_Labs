@@ -35,13 +35,13 @@ export const QuizLab: React.FC<QuizLabProps> = ({ labConfig, onPopulateSubmissio
   const isAllCorrect = checked && correctCount === questions.length;
 
   return (
-    <div className="bg-[#fdfdfc] border border-[#e5e5e5] rounded-sm p-4 space-y-4 text-xs font-sans shadow-xs">
-      <div className="flex items-center justify-between pb-2 border-b border-[#e5e5e5]">
+    <div className="bg-[#0f1011] border border-[#23252a] rounded-[12px] p-4 space-y-4 text-xs font-sans shadow-sm">
+      <div className="flex items-center justify-between pb-2.5 border-b border-[#23252a]">
         <div className="flex items-center gap-2">
-          <HelpCircle className="w-4 h-4 text-[#ff5e1f]" />
-          <span className="font-semibold text-[#262626] text-sm">Comprehension Knowledge Check</span>
+          <HelpCircle className="w-4 h-4 text-[#e4f222]" />
+          <span className="font-medium text-[#ffffff] text-sm">Comprehension Knowledge Check</span>
         </div>
-        <span className="text-[11px] font-mono text-[#737373]">
+        <span className="text-[11px] font-mono text-[#8a8f98]">
           {Object.keys(selectedAnswers).length}/{questions.length} Answered
         </span>
       </div>
@@ -52,37 +52,37 @@ export const QuizLab: React.FC<QuizLabProps> = ({ labConfig, onPopulateSubmissio
           const isCorrect = userChoice === q.answerIndex;
 
           return (
-            <div key={q.id} className="bg-white p-3.5 rounded-sm border border-[#e5e5e5] space-y-2 shadow-xs">
-              <div className="font-medium text-[#262626] leading-snug">
+            <div key={q.id} className="bg-[#161718] p-3.5 rounded-[6px] border border-[#23252a] space-y-2 shadow-xs">
+              <div className="font-normal text-[#ffffff] leading-snug">
                 {idx + 1}. {q.prompt}
               </div>
 
               <div className="space-y-1.5 pl-1">
                 {q.options.map((opt, optIdx) => {
                   const isThisSelected = userChoice === optIdx;
-                  let borderClass = 'border-[#e5e5e5] hover:border-[#d4d4d4] bg-white text-[#262626]';
+                  let borderClass = 'border-[#23252a] hover:border-[#383b3f] bg-[#0f1011] text-[#d0d6e0]';
 
                   if (checked) {
                     if (optIdx === q.answerIndex) {
-                      borderClass = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-medium';
+                      borderClass = 'border-[#27a644] bg-[#27a644]/10 text-[#ffffff] font-medium';
                     } else if (isThisSelected && !isCorrect) {
-                      borderClass = 'border-rose-400 bg-rose-50 text-rose-900';
+                      borderClass = 'border-[#eb5757] bg-[#eb5757]/10 text-[#eb5757]';
                     }
                   } else if (isThisSelected) {
-                    borderClass = 'border-[#ff5e1f] bg-[#fff7f2] text-[#ff5e1f] font-medium';
+                    borderClass = 'border-[#e4f222] bg-[#e4f222]/10 text-[#ffffff] font-medium';
                   }
 
                   return (
                     <label
                       key={optIdx}
-                      className={`flex items-start gap-2 p-2 rounded-sm border cursor-pointer transition text-[11px] ${borderClass}`}
+                      className={`flex items-start gap-2 p-2 rounded-[4px] border cursor-pointer transition text-[11px] ${borderClass}`}
                     >
                       <input
                         type="radio"
                         name={q.id}
                         checked={isThisSelected}
                         onChange={() => handleSelect(q.id, optIdx)}
-                        className="mt-0.5 text-[#ff5e1f] focus:ring-0"
+                        className="mt-0.5 text-[#e4f222] focus:ring-0 bg-[#08090a] border-[#23252a]"
                       />
                       <span>{opt}</span>
                     </label>
@@ -92,16 +92,16 @@ export const QuizLab: React.FC<QuizLabProps> = ({ labConfig, onPopulateSubmissio
 
               {checked && (
                 <div
-                  className={`p-2 rounded-sm text-[11px] leading-relaxed flex items-start gap-1.5 ${
+                  className={`p-2 rounded-[4px] text-[11px] leading-relaxed flex items-start gap-1.5 ${
                     isCorrect
-                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                      : 'bg-rose-50 text-rose-800 border border-rose-200'
+                      ? 'bg-[#27a644]/10 text-[#27a644] border border-[#27a644]/30'
+                      : 'bg-[#eb5757]/10 text-[#eb5757] border border-[#eb5757]/30'
                   }`}
                 >
                   {isCorrect ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[#27a644] mt-0.5" />
                   ) : (
-                    <XCircle className="w-3.5 h-3.5 shrink-0 text-rose-600 mt-0.5" />
+                    <XCircle className="w-3.5 h-3.5 shrink-0 text-[#eb5757] mt-0.5" />
                   )}
                   <span>{q.explanation}</span>
                 </div>
@@ -111,15 +111,15 @@ export const QuizLab: React.FC<QuizLabProps> = ({ labConfig, onPopulateSubmissio
         })}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#e5e5e5]">
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#23252a]">
         <button
           type="button"
           disabled={!allAnswered}
           onClick={() => setChecked(true)}
-          className={`px-4 py-2 rounded-sm text-xs font-semibold transition ${
+          className={`px-4 py-2 rounded-[6px] text-xs font-medium transition ${
             allAnswered
-              ? 'bg-[#ff5e1f] hover:bg-[#ff4800] text-white shadow-xs'
-              : 'bg-[#f0f0f0] text-[#a3a3a3] cursor-not-allowed border border-[#e5e5e5]'
+              ? 'bg-[#e4f222] hover:bg-[#d4e21a] text-[#08090a] shadow-sm'
+              : 'bg-[#161718] text-[#62666d] cursor-not-allowed border border-[#23252a]'
           }`}
         >
           Check Answers
@@ -128,8 +128,8 @@ export const QuizLab: React.FC<QuizLabProps> = ({ labConfig, onPopulateSubmissio
         {checked && (
           <div className="flex items-center gap-2">
             <span
-              className={`font-mono text-xs font-semibold ${
-                isAllCorrect ? 'text-emerald-700' : 'text-[#ff5e1f]'
+              className={`font-mono text-xs font-medium ${
+                isAllCorrect ? 'text-[#27a644]' : 'text-[#e4f222]'
               }`}
             >
               Score: {correctCount}/{questions.length} Correct
@@ -139,7 +139,7 @@ export const QuizLab: React.FC<QuizLabProps> = ({ labConfig, onPopulateSubmissio
               <button
                 type="button"
                 onClick={() => onPopulateSubmission?.(labConfig.passing_token!)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-mono px-3 py-1.5 rounded-sm text-xs transition flex items-center gap-1 shadow-xs"
+                className="bg-[#27a644] hover:bg-[#23913b] text-[#ffffff] font-mono px-3 py-1.5 rounded-[6px] text-xs transition flex items-center gap-1 shadow-sm font-medium"
               >
                 <Award className="w-3.5 h-3.5" />
                 <span>Use Validation Token: {labConfig.passing_token}</span>

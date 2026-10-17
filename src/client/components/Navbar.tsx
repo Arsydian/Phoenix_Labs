@@ -28,7 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   completedCount,
   totalModules,
   onOpenIngest,
-  appVersion = '1.0.1'
+  appVersion = '1.0.2'
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -47,71 +47,73 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
+  const displayVersion = (typeof window !== 'undefined' && (window as any).api?.appVersion) || appVersion;
+
   return (
-    <header className="border-b border-[#e5e5e5] bg-white px-6 py-2.5 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40 select-none">
+    <header className="border-b border-[#23252a] bg-[#08090a]/90 backdrop-blur px-6 py-2.5 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40 select-none">
       {/* Brand & Organization */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-sm bg-[#ff5e1f] text-white flex items-center justify-center shadow-sm">
-          <Shield className="w-4 h-4 text-white" />
+        <div className="w-7 h-7 rounded-[6px] bg-[#0f1011] border border-[#23252a] flex items-center justify-center text-[#e4f222] shadow-sm">
+          <Shield className="w-4 h-4 text-[#e4f222]" />
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-semibold tracking-tight text-sm text-[#262626]">
+            <span className="font-medium tracking-tight text-sm text-[#ffffff]">
               PHOENIX LABS // ACADEMY
             </span>
-            <span className="text-[10px] font-mono bg-[#f0f0f0] text-[#666666] px-1.5 py-0.5 rounded-sm border border-[#e5e5e5]">
-              v{appVersion}
+            <span className="text-[10px] font-mono bg-[#161718] text-[#8a8f98] px-1.5 py-0.5 rounded-[4px] border border-[#23252a]">
+              v{displayVersion}
             </span>
             {student && (
-              <span className="text-[11px] font-mono bg-[#fdfdfc] text-[#262626] px-2 py-0.5 rounded-sm border border-[#e5e5e5] hidden sm:inline-flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                <span className="text-[#737373]">{student.zero_trust_enforced ? 'Zero Trust:' : 'Operator:'}</span>
-                <span className="font-medium">{student.email}</span>
+              <span className="text-[11px] font-mono bg-[#0f1011] text-[#8a8f98] px-2 py-0.5 rounded-[4px] border border-[#23252a] hidden sm:inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#27a644]" />
+                <span className="text-[#62666d]">{student.zero_trust_enforced ? 'Zero Trust' : 'Operator'}:</span>
+                <span className="text-[#d0d6e0]">{student.email}</span>
                 {student.isAdmin && (
-                  <span className="ml-1 px-1 bg-[#ff5e1f]/10 text-[#ff5e1f] border border-[#ff5e1f]/30 rounded-sm text-[9px] font-bold">
+                  <span className="ml-1 px-1 bg-[#e4f222]/10 text-[#e4f222] border border-[#e4f222]/30 rounded-[3px] text-[9px] font-medium">
                     ADMIN
                   </span>
                 )}
               </span>
             )}
           </div>
-          <p className="text-[11px] text-[#737373] hidden sm:block">
-            Edge-Native Cyber Defense & Incident Triage Platform
+          <p className="text-[11px] text-[#62666d] hidden sm:block tracking-tight">
+            Midnight Precision Cybersecurity & Incident Triage Platform
           </p>
         </div>
       </div>
 
       {/* Course Topics Dropdown Menu */}
       <div className="relative" ref={dropdownRef}>
-        <div className="flex items-center gap-1.5 text-xs text-[#737373] mb-0.5">
-          <Layers className="w-3.5 h-3.5 text-[#ff5e1f]" />
+        <div className="flex items-center gap-1.5 text-[11px] text-[#8a8f98] mb-0.5">
+          <Layers className="w-3 h-3 text-[#e4f222]" />
           <span>Course Domain:</span>
         </div>
         <button
           type="button"
           onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="flex items-center gap-2.5 bg-[#fdfdfc] hover:bg-[#f7f7f6] text-[#262626] border border-[#d4d4d4] hover:border-[#ff5e1f] px-3.5 py-1.5 rounded-sm text-xs font-medium transition min-w-[220px] justify-between shadow-xs"
+          className="flex items-center gap-2.5 bg-[#0f1011] hover:bg-[#161718] text-[#d0d6e0] hover:text-[#ffffff] border border-[#23252a] hover:border-[#383b3f] px-3 py-1.5 rounded-[6px] text-xs font-normal transition min-w-[230px] justify-between shadow-sm"
           aria-expanded={dropdownOpen}
           aria-haspopup="true"
         >
           <div className="flex items-center gap-2 truncate">
-            <BookOpen className="w-3.5 h-3.5 text-[#ff5e1f] shrink-0" />
-            <span className="font-semibold truncate">{activeTrack?.title || 'Select Course Topic'}</span>
+            <BookOpen className="w-3.5 h-3.5 text-[#e4f222] shrink-0" />
+            <span className="text-[#ffffff] font-medium truncate">{activeTrack?.title || 'Select Course Domain'}</span>
           </div>
           <ChevronDown
-            className={`w-3.5 h-3.5 text-[#737373] transition-transform duration-200 shrink-0 ${
-              dropdownOpen ? 'rotate-180 text-[#ff5e1f]' : ''
+            className={`w-3.5 h-3.5 text-[#8a8f98] transition-transform duration-200 shrink-0 ${
+              dropdownOpen ? 'rotate-180 text-[#e4f222]' : ''
             }`}
           />
         </button>
 
         {/* Dropdown Popover */}
         {dropdownOpen && (
-          <div className="absolute left-0 mt-1 w-80 bg-white border border-[#e5e5e5] rounded-sm shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-            <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-[#737373] border-b border-[#f0f0f0]">
-              Available Course Curriculum
+          <div className="absolute left-0 mt-1.5 w-84 bg-[#0f1011] border border-[#23252a] rounded-[12px] shadow-xl py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-[#62666d] border-b border-[#23252a]/60">
+              Curriculum Domains
             </div>
-            <div className="max-h-72 overflow-y-auto py-1">
+            <div className="max-h-72 overflow-y-auto p-1 space-y-0.5">
               {tracks.map((t) => {
                 const isSelected = activeTrackId === t.id;
                 return (
@@ -122,22 +124,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                       onSelectTrack(t.id);
                       setDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-3.5 py-2.5 text-xs transition flex items-start justify-between gap-2 ${
+                    className={`w-full text-left px-3 py-2 text-xs rounded-[6px] transition flex items-start justify-between gap-2 ${
                       isSelected
-                        ? 'bg-[#fff7f2] text-[#ff5e1f] font-semibold'
-                        : 'text-[#262626] hover:bg-[#f7f7f6]'
+                        ? 'bg-[#161718] text-[#ffffff] font-medium border border-[#23252a]'
+                        : 'text-[#d0d6e0] hover:bg-[#161718]/60 hover:text-[#ffffff]'
                     }`}
                   >
                     <div className="space-y-0.5 min-w-0">
-                      <div className="font-medium text-xs flex items-center gap-1.5">
-                        <span className={isSelected ? 'text-[#ff5e1f]' : 'text-[#262626]'}>
+                      <div className="text-xs flex items-center gap-1.5">
+                        <span className={isSelected ? 'text-[#ffffff] font-medium' : 'text-[#d0d6e0]'}>
                           {t.title}
                         </span>
                       </div>
-                      <div className="text-[11px] text-[#737373] line-clamp-1">{t.subtitle}</div>
+                      <div className="text-[11px] text-[#8a8f98] line-clamp-1">{t.subtitle}</div>
                     </div>
                     {isSelected && (
-                      <Check className="w-4 h-4 text-[#ff5e1f] shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-[#e4f222] shrink-0 mt-0.5" />
                     )}
                   </button>
                 );
@@ -150,14 +152,14 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Progress & Ingestion Actions */}
       <div className="flex items-center gap-4">
         <div className="hidden md:flex items-center gap-2 text-xs">
-          <span className="text-[#737373]">Progress:</span>
-          <div className="w-20 h-1.5 bg-[#f0f0f0] rounded-sm overflow-hidden">
+          <span className="text-[#8a8f98]">Progress:</span>
+          <div className="w-20 h-1.5 bg-[#161718] border border-[#23252a] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#ff5e1f] transition-all duration-300"
+              className="h-full bg-[#e4f222] transition-all duration-300"
               style={{ width: `${completionPct}%` }}
             />
           </div>
-          <span className="font-mono text-[#262626] font-semibold text-[11px]">
+          <span className="font-mono text-[#d0d6e0] text-[11px]">
             {completedCount}/{totalModules}
           </span>
         </div>
@@ -165,9 +167,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           type="button"
           onClick={onOpenIngest}
-          className="text-xs bg-white hover:bg-[#f7f7f6] text-[#262626] border border-[#d4d4d4] hover:border-[#262626] px-3 py-1.5 rounded-sm transition flex items-center gap-1.5 font-medium shadow-xs"
+          className="text-xs bg-transparent hover:bg-[#161718] text-[#d0d6e0] hover:text-[#ffffff] border border-[#23252a] hover:border-[#383b3f] px-3 py-1.5 rounded-[6px] transition flex items-center gap-1.5 font-normal shadow-sm"
         >
-          <PlusCircle className="w-3.5 h-3.5 text-[#ff5e1f]" />
+          <PlusCircle className="w-3.5 h-3.5 text-[#e4f222]" />
           <span>Ingest Material</span>
         </button>
       </div>

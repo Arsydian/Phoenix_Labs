@@ -1,6 +1,6 @@
 # Phoenix Labs Academy
 
-![Build Version](https://img.shields.io/badge/version-1.0.1-emerald.svg)
+![Build Version](https://img.shields.io/badge/version-1.0.2-acid--lime.svg)
 ![Runtime](https://img.shields.io/badge/runtime-Cloudflare%20Workerd-orange.svg)
 ![Database](https://img.shields.io/badge/database-Cloudflare%20D1%20SQLite-blue.svg)
 ![Auth](https://img.shields.io/badge/auth-Zero%20Trust%20Access-purple.svg)

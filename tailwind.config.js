@@ -4,37 +4,56 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}"
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        cf: {
-          orange: '#ff5e1f',
-          'orange-hover': '#ff4800',
-          'orange-subtle': '#fff7f2',
-          'orange-border': '#ffdcd0',
-          bg: '#ffffff',
-          surface: '#fdfdfc',
-          card: '#ffffff',
-          'surface-hover': '#f7f7f6',
-          border: '#e5e5e5',
-          'border-subtle': '#f0f0f0',
-          text: '#262626',
-          muted: '#666666',
-          'muted-light': '#8c8c8c',
-          dark: '#161616',
-          'dark-card': '#1c1c1c',
-          'dark-border': '#2d2d2d'
+        linear: {
+          void: '#08090a',
+          carbon: '#0f1011',
+          obsidian: '#161718',
+          graphite: '#23252a',
+          smoke: '#383b3f',
+          ash: '#62666d',
+          fog: '#8a8f98',
+          mist: '#d0d6e0',
+          bone: '#e5e5e6',
+          paper: '#ffffff',
+          'acid-lime': '#e4f222',
+          'acid-lime-hover': '#d4e21a',
+          'pulse-green': '#27a644',
+          'coral-red': '#eb5757',
+          'signal-teal': '#02b8cc',
+          'iris-violet': '#6366f1',
+          lavender: '#8b5cf6'
         }
       },
       borderRadius: {
-        sm: '1px',
-        DEFAULT: '2px',
-        md: '3px',
-        lg: '4px'
+        sm: '2px',
+        md: '6px',
+        xl: '12px',
+        cards: '12px',
+        inputs: '6px',
+        buttons: '6px',
+        badges: '4px',
+        pills: '9999px'
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', '"Fira Sans"', '"Droid Sans"', '"Helvetica Neue"', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace']
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        mono: ['"Berkeley Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+      },
+      letterSpacing: {
+        tighter: '-0.022em',
+        tight: '-0.012em',
+        snug: '-0.011em',
+        normal: '0'
+      },
+      boxShadow: {
+        subtle: 'rgb(35, 37, 42) 0px 0px 0px 1px inset',
+        'subtle-card': 'rgba(255, 255, 255, 0.03) 0px 0px 0px 1px inset',
+        sm: 'rgba(0, 0, 0, 0.4) 0px 2px 4px 0px',
+        md: 'rgba(0, 0, 0, 0.2) 0px 0px 12px 0px inset',
+        xl: 'rgba(8, 9, 10, 0.6) 0px 4px 32px 0px'
       }
     }
   },

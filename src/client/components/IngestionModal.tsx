@@ -175,22 +175,22 @@ Because the domain controller encrypts the ticket using the target service accou
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-[#e5e5e5] rounded-sm max-w-3xl w-full p-6 space-y-4 shadow-xl">
+    <div className="fixed inset-0 bg-[#08090a]/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+      <div className="bg-[#0f1011] border border-[#23252a] rounded-[12px] max-w-3xl w-full p-6 space-y-4 shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#e5e5e5]">
+        <div className="flex items-center justify-between pb-3 border-b border-[#23252a]">
           <div>
-            <h3 className="text-base font-semibold text-[#262626] flex items-center gap-2">
-              <UploadCloud className="w-5 h-5 text-[#ff5e1f]" />
+            <h3 className="text-base font-medium text-[#ffffff] flex items-center gap-2 tracking-tight">
+              <UploadCloud className="w-5 h-5 text-[#e4f222]" />
               <span>Ingest Course Material</span>
             </h3>
-            <p className="text-xs text-[#737373] mt-0.5">
+            <p className="text-xs text-[#8a8f98] mt-0.5">
               Paste compiled JSON or Markdown with Frontmatter to hot-load into Phoenix Labs Academy.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-[#737373] hover:text-[#262626] p-1 rounded-sm hover:bg-[#f7f7f6] transition"
+            className="text-[#8a8f98] hover:text-[#ffffff] p-1 rounded-[6px] hover:bg-[#161718] transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -198,14 +198,14 @@ Because the domain controller encrypts the ticket using the target service accou
 
         {/* Format Selectors and Sample Loaders */}
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex gap-1 bg-[#f0f0f0] p-1 rounded-sm border border-[#e5e5e5] text-xs">
+          <div className="flex gap-1 bg-[#161718] p-1 rounded-[6px] border border-[#23252a] text-xs">
             <button
               type="button"
               onClick={() => setFormat('json')}
-              className={`px-3 py-1 rounded-sm transition ${
+              className={`px-3 py-1 rounded-[4px] transition ${
                 format === 'json'
-                  ? 'bg-white text-[#ff5e1f] font-semibold shadow-xs'
-                  : 'text-[#666666] hover:text-[#262626]'
+                  ? 'bg-[#23252a] text-[#ffffff] font-medium shadow-xs'
+                  : 'text-[#8a8f98] hover:text-[#ffffff]'
               }`}
             >
               JSON Payload
@@ -213,10 +213,10 @@ Because the domain controller encrypts the ticket using the target service accou
             <button
               type="button"
               onClick={() => setFormat('markdown')}
-              className={`px-3 py-1 rounded-sm transition ${
+              className={`px-3 py-1 rounded-[4px] transition ${
                 format === 'markdown'
-                  ? 'bg-white text-[#ff5e1f] font-semibold shadow-xs'
-                  : 'text-[#666666] hover:text-[#262626]'
+                  ? 'bg-[#23252a] text-[#ffffff] font-medium shadow-xs'
+                  : 'text-[#8a8f98] hover:text-[#ffffff]'
               }`}
             >
               Markdown with YAML
@@ -227,14 +227,14 @@ Because the domain controller encrypts the ticket using the target service accou
             <button
               type="button"
               onClick={loadSampleJson}
-              className="text-xs bg-[#fdfdfc] hover:bg-[#f7f7f6] text-[#262626] border border-[#d4d4d4] px-2.5 py-1 rounded-sm transition shadow-xs"
+              className="text-xs bg-[#161718] hover:bg-[#23252a] text-[#d0d6e0] border border-[#23252a] px-2.5 py-1 rounded-[6px] transition shadow-xs"
             >
               Sample JSON (Malware 301)
             </button>
             <button
               type="button"
               onClick={loadSampleMarkdown}
-              className="text-xs bg-[#fdfdfc] hover:bg-[#f7f7f6] text-[#262626] border border-[#d4d4d4] px-2.5 py-1 rounded-sm transition shadow-xs"
+              className="text-xs bg-[#161718] hover:bg-[#23252a] text-[#d0d6e0] border border-[#23252a] px-2.5 py-1 rounded-[6px] transition shadow-xs"
             >
               Sample Markdown (Pentest 301)
             </button>
@@ -252,41 +252,41 @@ Because the domain controller encrypts the ticket using the target service accou
                 ? '{\n  "id": "mod-example-101",\n  "track_id": "track-pentest",\n  "title": "...",\n  "expected_flag": "..."\n}'
                 : '---\nid: mod-example-101\ntrack_id: track-pentest\nexpected_flag: "..."\n---\n# Theory Heading\nTheory body text...'
             }
-            className="w-full bg-[#fdfdfc] border border-[#d4d4d4] rounded-sm p-3 font-mono text-xs text-[#262626] focus:outline-none focus:border-[#ff5e1f]"
+            className="w-full bg-[#08090a] border border-[#23252a] rounded-[6px] p-3 font-mono text-xs text-[#d0d6e0] focus:outline-none focus:border-[#383b3f]"
           />
 
           {statusMessage && (
             <div
-              className={`p-3 rounded-sm text-xs flex items-center gap-2 ${
+              className={`p-3 rounded-[6px] text-xs flex items-center gap-2 ${
                 statusMessage.type === 'success'
-                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
-                  : 'bg-rose-50 border border-rose-200 text-rose-800'
+                  ? 'bg-[#27a644]/10 border border-[#27a644]/30 text-[#27a644]'
+                  : 'bg-[#eb5757]/10 border border-[#eb5757]/30 text-[#eb5757]'
               }`}
             >
               {statusMessage.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-[#27a644]" />
               ) : (
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <AlertCircle className="w-4 h-4 shrink-0 text-[#eb5757]" />
               )}
               <span>{statusMessage.text}</span>
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#e5e5e5]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#23252a]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-sm text-xs text-[#666666] hover:text-[#262626] hover:bg-[#f7f7f6] transition"
+              className="px-4 py-2 rounded-[6px] text-xs text-[#8a8f98] hover:text-[#ffffff] hover:bg-[#161718] transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !payloadText.trim()}
-              className={`px-5 py-2 rounded-sm text-xs font-semibold transition ${
+              className={`px-5 py-2 rounded-[6px] text-xs font-medium transition ${
                 loading || !payloadText.trim()
-                  ? 'bg-[#f0f0f0] text-[#a3a3a3] cursor-not-allowed border border-[#e5e5e5]'
-                  : 'bg-[#ff5e1f] hover:bg-[#ff4800] text-white shadow-xs'
+                  ? 'bg-[#161718] text-[#62666d] cursor-not-allowed border border-[#23252a]'
+                  : 'bg-[#e4f222] hover:bg-[#d4e21a] text-[#08090a] shadow-xs'
               }`}
             >
               {loading ? 'Ingesting...' : 'Ingest to Cloudflare D1'}
