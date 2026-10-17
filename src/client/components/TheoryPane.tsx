@@ -19,48 +19,48 @@ interface TheoryPaneProps {
 export const TheoryPane: React.FC<TheoryPaneProps> = ({ module }) => {
   if (!module) {
     return (
-      <main className="lg:col-span-4 xl:col-span-5 border-b lg:border-b-0 lg:border-r border-slate-800 p-8 flex items-center justify-center text-slate-500">
+      <main className="lg:col-span-4 xl:col-span-5 border-b lg:border-b-0 lg:border-r border-[#e5e5e5] bg-white p-8 flex items-center justify-center text-[#737373]">
         <div className="text-center space-y-2">
-          <BookOpen className="w-8 h-8 mx-auto text-slate-600" />
-          <p className="text-sm">Select a module from the sidebar to begin.</p>
+          <BookOpen className="w-8 h-8 mx-auto text-[#d4d4d4]" />
+          <p className="text-xs">Select a module from the sidebar to view theoretical mechanics.</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="lg:col-span-4 xl:col-span-5 border-b lg:border-b-0 lg:border-r border-slate-800 p-6 overflow-y-auto space-y-5">
+    <main className="lg:col-span-4 xl:col-span-5 border-b lg:border-b-0 lg:border-r border-[#e5e5e5] bg-white p-6 overflow-y-auto space-y-5">
       {/* Module Meta Header */}
-      <div className="space-y-2">
+      <div className="space-y-1.5 pb-3 border-b border-[#f0f0f0]">
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="px-2 py-0.5 rounded bg-orange-500/15 text-orange-300 border border-orange-500/30">
+          <span className="px-2 py-0.5 rounded-sm bg-[#fff7f2] text-[#ff5e1f] border border-[#ffdcd0] font-semibold text-[11px]">
             {module.difficulty}
           </span>
-          <span className="text-slate-500">•</span>
-          <span className="text-slate-400">{module.estimated_minutes} Min Module</span>
-          <span className="text-slate-500">•</span>
-          <span className="text-amber-300 uppercase tracking-wide">
+          <span className="text-[#d4d4d4]">•</span>
+          <span className="text-[#737373] text-[11px]">{module.estimated_minutes} Min Module</span>
+          <span className="text-[#d4d4d4]">•</span>
+          <span className="text-[#737373] text-[11px] uppercase tracking-wide">
             Lab: {module.lab_type.replace('_', ' ')}
           </span>
         </div>
 
-        <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+        <h1 className="text-xl font-bold text-[#262626] tracking-tight">
           {module.title}
         </h1>
       </div>
 
-      {/* Structured Systems Architecture & Threat Theory */}
-      <div className="space-y-4">
+      {/* Structured Technical Theory */}
+      <div className="space-y-3.5">
         {(module.theory_sections || []).map((sec, idx) => (
           <div
             key={idx}
-            className="bg-slate-900/50 border border-slate-800/90 rounded-lg p-4 space-y-2"
+            className="bg-[#fdfdfc] border border-[#e5e5e5] rounded-sm p-4 space-y-2 shadow-xs"
           >
-            <h3 className="text-sm font-semibold text-orange-300 tracking-wide flex items-center gap-1.5">
-              <ChevronRight className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+            <h3 className="text-sm font-semibold text-[#262626] tracking-tight flex items-center gap-1.5">
+              <ChevronRight className="w-3.5 h-3.5 text-[#ff5e1f] shrink-0" />
               <span>{sec.heading}</span>
             </h3>
-            <div className="text-sm text-slate-300 leading-relaxed whitespace-pre-line font-sans">
+            <div className="text-xs leading-relaxed text-[#525252] whitespace-pre-line font-sans">
               {sec.body}
             </div>
           </div>

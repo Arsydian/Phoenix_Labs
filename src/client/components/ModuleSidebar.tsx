@@ -1,5 +1,5 @@
 import React from 'react';
-import { Terminal, Search, Cpu, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { Terminal, Search, Cpu, HelpCircle, Check } from 'lucide-react';
 
 interface ModuleItem {
   id: string;
@@ -30,32 +30,32 @@ export const ModuleSidebar: React.FC<ModuleSidebarProps> = ({
   const getLabIcon = (type: string) => {
     switch (type) {
       case 'terminal':
-        return <Terminal className="w-3.5 h-3.5 text-emerald-400" />;
+        return <Terminal className="w-3.5 h-3.5 text-emerald-600" />;
       case 'siem':
-        return <Search className="w-3.5 h-3.5 text-sky-400" />;
+        return <Search className="w-3.5 h-3.5 text-sky-600" />;
       case 'hex_inspector':
-        return <Cpu className="w-3.5 h-3.5 text-rose-400" />;
+        return <Cpu className="w-3.5 h-3.5 text-rose-600" />;
       case 'quiz':
-        return <HelpCircle className="w-3.5 h-3.5 text-amber-400" />;
+        return <HelpCircle className="w-3.5 h-3.5 text-[#ff5e1f]" />;
       default:
-        return <Terminal className="w-3.5 h-3.5 text-slate-400" />;
+        return <Terminal className="w-3.5 h-3.5 text-[#737373]" />;
     }
   };
 
   return (
-    <aside className="lg:col-span-3 xl:col-span-2 border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-900/40 p-4 space-y-4 overflow-y-auto flex flex-col justify-between">
+    <aside className="lg:col-span-3 xl:col-span-2 border-b lg:border-b-0 lg:border-r border-[#e5e5e5] bg-[#fdfdfc] p-4 space-y-4 overflow-y-auto flex flex-col justify-between">
       <div className="space-y-3">
-        <div>
-          <div className="text-[11px] font-mono uppercase tracking-wider text-orange-400">
-            Active Track
+        <div className="pb-2 border-b border-[#f0f0f0]">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-[#ff5e1f] font-semibold">
+            Active Domain Modules
           </div>
-          <h2 className="font-bold text-sm text-white mt-0.5">{trackTitle || 'Track Modules'}</h2>
+          <h2 className="font-semibold text-sm text-[#262626] mt-0.5">{trackTitle || 'Curriculum Modules'}</h2>
           {trackSubtitle && (
-            <p className="text-xs text-slate-400 mt-0.5 leading-snug">{trackSubtitle}</p>
+            <p className="text-[11px] text-[#737373] mt-0.5 leading-snug">{trackSubtitle}</p>
           )}
         </div>
 
-        <div className="pt-2 border-t border-slate-800/80 space-y-2">
+        <div className="space-y-1">
           {modules.map((m) => {
             const isCompleted = m.status === 'completed';
             const isSelected = activeModuleId === m.id;
@@ -64,26 +64,20 @@ export const ModuleSidebar: React.FC<ModuleSidebarProps> = ({
               <button
                 key={m.id}
                 onClick={() => onSelectModule(m.slug)}
-                className={`w-full text-left p-3 rounded-lg border transition flex items-start justify-between gap-2 ${
+                className={`w-full text-left p-2.5 rounded-sm border transition flex items-start justify-between gap-2 ${
                   isSelected
-                    ? 'bg-slate-800/90 border-orange-500/50 text-white shadow-sm'
-                    : 'bg-slate-900/40 border-slate-800/80 hover:bg-slate-900 text-slate-300'
+                    ? 'bg-[#fff7f2] border-[#ff5e1f] text-[#262626] shadow-xs font-medium'
+                    : 'bg-white border-[#f0f0f0] hover:border-[#d4d4d4] hover:bg-[#f7f7f6] text-[#262626]'
                 }`}
               >
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="text-xs font-semibold leading-snug truncate">{m.title}</div>
-                  <div className="flex items-center gap-2 text-[11px]">
-                    <span
-                      className={`px-1.5 py-0.2 rounded font-mono text-[10px] ${
-                        m.difficulty === 'Fundamentals'
-                          ? 'bg-sky-500/15 text-sky-300'
-                          : 'bg-amber-500/15 text-amber-300'
-                      }`}
-                    >
+                <div className="space-y-1 flex-1 min-w-0">
+                  <div className="text-xs font-medium leading-snug truncate">{m.title}</div>
+                  <div className="flex items-center gap-2 text-[10px] text-[#737373]">
+                    <span className="px-1.5 py-0.2 rounded-sm font-mono bg-[#f0f0f0] text-[#555555] border border-[#e5e5e5]">
                       {m.difficulty}
                     </span>
-                    <span className="text-slate-500 text-[10px]">{m.estimated_minutes}m</span>
-                    <span className="flex items-center gap-1 text-[10px] text-slate-400 font-mono">
+                    <span>{m.estimated_minutes}m</span>
+                    <span className="flex items-center gap-1 font-mono text-[#666666]">
                       {getLabIcon(m.lab_type)}
                       <span className="capitalize">{m.lab_type.replace('_', ' ')}</span>
                     </span>
@@ -91,13 +85,13 @@ export const ModuleSidebar: React.FC<ModuleSidebarProps> = ({
                 </div>
 
                 <span
-                  className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5 ${
+                  className={`w-4 h-4 rounded-sm flex items-center justify-center text-[10px] shrink-0 mt-0.5 ${
                     isCompleted
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold'
-                      : 'border border-slate-700 text-transparent'
+                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 font-bold'
+                      : 'border border-[#d4d4d4] text-transparent'
                   }`}
                 >
-                  {isCompleted ? '✓' : ''}
+                  {isCompleted ? <Check className="w-3 h-3 text-emerald-600" /> : ''}
                 </span>
               </button>
             );
@@ -105,9 +99,9 @@ export const ModuleSidebar: React.FC<ModuleSidebarProps> = ({
         </div>
       </div>
 
-      <div className="hidden lg:block pt-4 border-t border-slate-800/80 text-[11px] text-slate-500 font-mono space-y-1">
+      <div className="hidden lg:block pt-3 border-t border-[#f0f0f0] text-[10px] text-[#8c8c8c] font-mono space-y-1">
         <div>RUNTIME: Cloudflare Workerd</div>
-        <div>STORAGE: Cloudflare D1 (SQLite)</div>
+        <div>STORAGE: Cloudflare D1 (Edge SQLite)</div>
       </div>
     </aside>
   );
