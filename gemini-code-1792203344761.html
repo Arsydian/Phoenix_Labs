@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecOps Academy — Cloudflare + Zero Trust Project Exporter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans">
+  <div class="max-w-5xl mx-auto space-y-6">
+    <!-- Header Banner -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 text-xs font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded">
+            CLOUDFLARE WORKERS + D1 + ZERO TRUST
+          </span>
+        </div>
+        <h1 class="text-2xl font-bold text-white mt-2">SecOps Academy — Project Bundle Exporter</h1>
+        <p class="text-sm text-slate-400 mt-1">
+          Download the complete repository as a single <code class="text-emerald-300">.zip</code> archive or grab individual source files below.
+        </p>
+      </div>
+      <button
+        id="downloadZipBtn"
+        onclick="downloadFullZip()"
+        class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-3 rounded-lg text-sm transition shadow-lg flex items-center gap-2 shrink-0"
+      >
+        <span>⬇ Download Full Project (.ZIP)</span>
+      </button>
+    </div>
+
+    <!-- Quick Deployment Checklist -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-3">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 font-mono">
+        Local-to-Cloudflare Deployment Sequence
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+          <div class="font-bold text-white">1. Run Locally (SQLite D1)</div>
+          <pre class="text-emerald-300 font-mono overflow-x-auto">npm install
+npm run db:init:local
+npm run preview</pre>
+        </div>
+        <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+          <div class="font-bold text-white">2. Provision Cloudflare D1</div>
+          <pre class="text-sky-300 font-mono overflow-x-auto">npx wrangler d1 create secops-db
+# Paste database_id into wrangler.toml
+npm run db:init:remote
+npm run deploy</pre>
+        </div>
+        <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+          <div class="font-bold text-white">3. Enable Zero Trust Access</div>
+          <p class="text-slate-400 leading-relaxed">
+            In Cloudflare Zero Trust &rarr; <strong>Access &rarr; Applications</strong>, protect your Worker domain. The Worker automatically reads <code class="text-slate-200">Cf-Access-Authenticated-User-Email</code>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- File List & Viewer -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-4 space-y-2" id="fileList"></div>
+      <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col">
+        <div class="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+          <span id="activeFileName" class="font-mono text-xs text-emerald-400 font-semibold"></span>
+          <div class="flex gap-2">
+            <button
+              onclick="copyActiveFile()"
+              id="copyBtn"
+              class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1 rounded border border-slate-700 transition"
+            >
+              Copy Code
+            </button>
+            <button
+              onclick="downloadActiveFile()"
+              class="text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-3 py-1 rounded border border-emerald-500/40 transition"
+            >
+              ⬇ Download File
+            </button>
+          </div>
+        </div>
+        <pre id="activeFileContent" class="p-4 text-xs font-mono text-slate-300 overflow-auto max-h-[540px] leading-relaxed"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PROJECT_FILES = {
+      "package.json": `{
+  "name": "secops-academy",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "db:init:local": "wrangler d1 execute secops-db --local --file=./migrations/0001_schema.sql && wrangler d1 execute secops-db --local --file=./migrations/0002_seed_starter.sql",
+    "db:init:remote": "wrangler d1 execute secops-db --remote --file=./migrations/0001_schema.sql && wrangler d1 execute secops-db --remote --file=./migrations/0002_seed_starter.sql",
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "lucide-react": "^0.454.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241011.0",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "wrangler": "^3.86.0"
+  }
+}`,
+
+      "wrangler.toml": `name = "secops-academy"
+main = "src/worker/index.ts"
+compatibility_date = "2026-03-01"
+
+# Serves the compiled Vite React SPA from ./dist
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
+binding = "ASSETS"
+
+# Cloudflare D1 Database Binding (Uses local SQLite with 'wrangler dev')
+[[d1_databases]]
+binding = "DB"
+database_name = "secops-db"
+database_id = "REPLACE_WITH_YOUR_D1_UUID_FROM_WRANGLER_D1_CREATE"
+
+[vars]
+# Optional: Set your Cloudflare Zero Trust Team Domain to strictly verify JWT headers
+CF_ACCESS_TEAM_DOMAIN = ""`,
+
+      "vite.config.ts": `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true
+  },
+  server: {
+    proxy: {
+      '/api': 'http://127.0.0.1:8787'
+    }
+  }
+});`,
+
+      "tsconfig.json": `{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": ["src"]
+}`,
+
+      "tailwind.config.js": `/** @type {import('tailwindcss').Config} */
+export default {
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {}
+  },
+  plugins: []
+};`,
+
+      "postcss.config.js": `export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {}
+  }
+};`,
+
+      "index.html": `<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SECOPS // ACADEMY</title>
+  </head>
+  <body class="bg-slate-950 text-slate-100 antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/client/main.tsx"></script>
+  </body>
+</html>`,
+
+      "migrations/0001_schema.sql": `-- Cloudflare D1 Schema: Tracks, Modules, Students & Granular Progress
+DROP TABLE IF EXISTS student_module_progress;
+DROP TABLE IF EXISTS students;
+DROP TABLE IF EXISTS modules;
+DROP TABLE IF EXISTS tracks;
+
+-- 1. Core Cyber Domains
+CREATE TABLE tracks (
+    id TEXT PRIMARY KEY,
+    slug TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    subtitle TEXT NOT NULL,
+    description TEXT NOT NULL,
+    order_index INTEGER NOT NULL
+);
+
+-- 2. Curriculum Modules & Polymorphic Lab Payloads
+CREATE TABLE modules (
+    id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    difficulty TEXT CHECK(difficulty IN ('Fundamentals', 'Intermediate', 'Advanced')) NOT NULL,
+    order_index INTEGER NOT NULL,
+    estimated_minutes INTEGER NOT NULL,
+    theory_json TEXT NOT NULL,          -- Array of { heading, body } sections
+    lab_type TEXT CHECK(lab_type IN ('terminal', 'siem', 'hex_inspector')) NOT NULL,
+    lab_briefing TEXT NOT NULL,
+    lab_config_json TEXT NOT NULL,      -- Hydrates CLI, SIEM, or Malware Inspector
+    expected_flag TEXT NOT NULL,        -- Stripped from client responses; verified on Worker
+    hint TEXT NOT NULL,
+    FOREIGN KEY (track_id) REFERENCES tracks(id)
+);
+
+-- 3. Zero Trust Authenticated Student Profiles
+CREATE TABLE students (
+    id TEXT PRIMARY KEY,                -- Email from Cf-Access-Authenticated-User-Email
+    email TEXT UNIQUE NOT NULL,
+    display_name TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_active_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. Per-Student Course & Module Progress Telemetry
+CREATE TABLE student_module_progress (
+    student_id TEXT NOT NULL,
+    module_id TEXT NOT NULL,
+    track_id TEXT NOT NULL,
+    status TEXT CHECK(status IN ('not_started', 'in_progress', 'completed')) DEFAULT 'in_progress',
+    attempts INTEGER DEFAULT 0,
+    hints_used INTEGER DEFAULT 0,
+    saved_lab_state_json TEXT DEFAULT '{}',
+    time_spent_seconds INTEGER DEFAULT 0,
+    started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    completed_at DATETIME,
+    PRIMARY KEY (student_id, module_id),
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    FOREIGN KEY (module_id) REFERENCES modules(id)
+);`,
+
+      "migrations/0002_seed_starter.sql": `INSERT INTO tracks (id, slug, title, subtitle, description, order_index) VALUES
+('track-pentest', 'penetration-testing', 'Penetration Testing', 'Attack Surface & Exploitation', 'Transition from systems administration to offensive methodology: reconnaissance, enumeration, exploitation, and privilege escalation.', 1),
+('track-hunting', 'threat-hunting', 'Threat Hunting', 'Hypothesis-Driven Detection', 'Move beyond signature alerts: analyze Sysmon, EDR telemetry, and WMI persistence to uncover Living-off-the-Land adversaries.', 2),
+('track-malware', 'malware-analysis', 'Malware Engineering', 'Discovery, Blast Chamber, RE & Remediation', 'End-to-end malware lifecycle: discovery triage, isolated blast-chamber detonation, reverse engineering, and YARA remediation.', 3);
+
+INSERT INTO modules (id, track_id, slug, title, difficulty, order_index, estimated_minutes, theory_json, lab_type, lab_briefing, lab_config_json, expected_flag, hint) VALUES
+(
+  'mod-pt-101',
+  'track-pentest',
+  'service-enumeration-fundamentals',
+  '101: From Port States to Service Misconfigurations',
+  'Fundamentals',
+  1,
+  15,
+  '[{"heading":"The Systems-to-Offensive Mindset Shift","body":"As an experienced technologist, you use port checks to verify service availability. In Penetration Testing, an open port is merely the entry point—our objective is to interrogate how the daemon identifies itself and whether anonymous or misconfigured sub-protocols are exposed."},{"heading":"SMB Null Sessions & Staging Leakage","body":"Misconfigured Samba directives (guest ok = yes) allow unauthenticated enumeration (-N) of CI/CD deployment shares without domain credentials."}]',
+  'terminal',
+  'Enumerate open services on 10.10.14.22, inspect the exposed SMB shares using anonymous authentication (-N), and submit the deployment flag inside deploy.env.',
+  '{"target_ip":"10.10.14.22","quick_commands":["nmap -sV 10.10.14.22","smbclient -L //10.10.14.22 -N","smbclient //10.10.14.22/dev-staging -N -c \\"ls\\"","smbclient //10.10.14.22/dev-staging -N -c \\"get deploy.env -\\""],"commands":{"nmap -sV 10.10.14.22":"PORT    STATE SERVICE      VERSION\\n22/tcp  open  ssh          OpenSSH 9.2p1\\n445/tcp open  microsoft-ds Samba smbd 4.17.12","smbclient -L //10.10.14.22 -N":"Sharename       Type      Comment\\n---------       ----      -------\\ndev-staging     Disk      Automated CI Deployment Drop\\nIPC$            IPC       IPC Service","smbclient //10.10.14.22/dev-staging -N -c \\"ls\\"":"  deploy.env      N      142  Fri Oct 16 14:20:11 2026","smbclient //10.10.14.22/dev-staging -N -c \\"get deploy.env -\\"":"APP_ENV=staging\\nFLAG=FLAG{SMB_NULL_SESSION_EXPOSED}"}}',
+  'FLAG{SMB_NULL_SESSION_EXPOSED}',
+  'Run the four quick commands in sequence, ending with smbclient //10.10.14.22/dev-staging -N -c "get deploy.env -".'
+),
+(
+  'mod-th-101',
+  'track-hunting',
+  'lotl-powershell-hunting',
+  '101: Hunting Encoded Living-off-the-Land (LotL) Execution',
+  'Fundamentals',
+  1,
+  20,
+  '[{"heading":"Why Signature Alerts Miss LotL","body":"Adversaries abuse native, Microsoft-signed binaries (powershell.exe, rundll32.exe) already present on every endpoint."},{"heading":"Sysmon Event ID 1 Parent-Child Pivoting","body":"When WINWORD.EXE spawns powershell.exe with -NoP -W Hidden -Enc, it violates baseline process behavior."}]',
+  'siem',
+  'Filter the Sysmon Event ID 1 telemetry stream to locate the obfuscated PowerShell execution spawned by WINWORD.EXE. Decode the UTF-16LE Base64 payload and submit the hidden C2 URL.',
+  '{"logs":[{"timestamp":"2026-10-16T18:01:12Z","host":"WKSTN-FIN-04","event_id":1,"parent_image":"C:\\\\Windows\\\\System32\\\\services.exe","image":"C:\\\\Windows\\\\System32\\\\svchost.exe","command_line":"svchost.exe -k netsvcs -p"},{"timestamp":"2026-10-16T18:04:49Z","host":"WKSTN-FIN-04","event_id":1,"parent_image":"C:\\\\Program Files\\\\Microsoft Office\\\\root\\\\Office16\\\\WINWORD.EXE","image":"C:\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe","command_line":"powershell.exe -NoP -NonI -W Hidden -Exec Bypass -Enc aAB0AHQAcAA6AC8ALwAxADAALgAxADAALgAxADkALgA5ADkALwBzAHQAYQBnAGUAMgAuAHAAcwAxAA=="}]}',
+  'http://10.10.19.99/stage2.ps1',
+  'Filter by powershell, click Decode Base64 on the -Enc payload, and submit the URL.'
+),
+(
+  'mod-mw-101',
+  'track-malware',
+  'blast-chamber-triage-and-iat',
+  '101: Discovery, Blast Chamber Detonation & IAT Triage',
+  'Fundamentals',
+  1,
+  25,
+  '[{"heading":"The 4-Stage Malware Engineering Lifecycle","body":"1. Discovery (entropy/headers)\\n2. Blast Chamber Detonation (isolated sandbox telemetry)\\n3. Reverse Engineering (IAT & decompilation)\\n4. Remediation (persistence removal & YARA rules)."},{"heading":"Process Injection IAT Trio","body":"Importing VirtualAllocEx, WriteProcessMemory, and CreateRemoteThread enables remote process injection into explorer.exe."}]',
+  'hex_inspector',
+  'Examine the static PE metadata, Blast Chamber detonation trace, and decompiled routine for updater_svc.exe. Submit the external C2 domain contacted after injection.',
+  '{"sample_name":"updater_svc.exe (SHA256: 9f86d081884c7d659a2feaa0c55ad015)","entropy":"7.42 (Packed .rsrc)","imports":["KERNEL32.dll!VirtualAllocEx","KERNEL32.dll!WriteProcessMemory","KERNEL32.dll!CreateRemoteThread","WININET.dll!InternetOpenUrlA"],"strings":["Global\\\\Mtx_Sync_881","https://telemetry-cdn-check.net/gate.php"],"sandbox_trace":"[00:01.12] Spawned updater_svc.exe (PID 4120)\\n[00:02.08] Injected 4096 bytes into explorer.exe (PID 1840)\\n[00:03.19] DNS Query A -> telemetry-cdn-check.net","decompiled_c":"HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);\\nLPVOID buf = VirtualAllocEx(hProc, NULL, sz, MEM_COMMIT, PAGE_EXECUTE_READWRITE);\\nWriteProcessMemory(hProc, buf, shellcode, sz, NULL);\\nCreateRemoteThread(hProc, NULL, 0, buf, NULL, 0, NULL);","remediation_yara":"rule Malware_UpdaterSvc_Injector { strings: $c2 = \\"telemetry-cdn-check.net\\" condition: uint16(0) == 0x5A4D and all of them }"}',
+  'telemetry-cdn-check.net',
+  'Check the Extracted Strings or Blast Chamber trace for the C2 domain.'
+);`,
+
+      "src/worker/index.ts": `import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+
+type Bindings = {
+  DB: D1Database;
+  ASSETS: Fetcher;
+  CF_ACCESS_TEAM_DOMAIN?: string;
+};
+
+type Variables = {
+  studentEmail: string;
+};
+
+const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+
+app.use('/api/*', cors());
+
+/**
+ * CLOUDFLARE ZERO TRUST ACCESS MIDDLEWARE
+ * Automatically extracts the authenticated user identity injected by Cloudflare Access
+ * (Cf-Access-Authenticated-User-Email) and ensures their student record exists in D1.
+ * Falls back to 'local-operator@localhost' when running locally via 'wrangler dev'.
+ */
+app.use('/api/*', async (c, next) => {
+  const cfEmail =
+    c.req.header('Cf-Access-Authenticated-User-Email') || 'local-operator@localhost';
+  const displayName = cfEmail.split('@')[0];
+
+  await c.env.DB.prepare(
+    \`INSERT INTO students (id, email, display_name, last_active_at)
+     VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+     ON CONFLICT(id) DO UPDATE SET last_active_at = CURRENT_TIMESTAMP\`
+  )
+    .bind(cfEmail, cfEmail, displayName)
+    .run();
+
+  c.set('studentEmail', cfEmail);
+  await next();
+});
+
+// 1. Get Student Identity, Tracks, Modules, and Per-Track Completion Rollup
+app.get('/api/curriculum', async (c) => {
+  const studentId = c.get('studentEmail');
+
+  const { results: tracks } = await c.env.DB.prepare(
+    \`SELECT * FROM tracks ORDER BY order_index ASC\`
+  ).all();
+
+  const { results: modules } = await c.env.DB.prepare(
+    \`SELECT m.id, m.track_id, m.slug, m.title, m.difficulty, m.order_index,
+            m.estimated_minutes, m.lab_type,
+            COALESCE(p.status, 'not_started') as status,
+            COALESCE(p.attempts, 0) as attempts,
+            COALESCE(p.time_spent_seconds, 0) as time_spent_seconds,
+            p.completed_at
+     FROM modules m
+     LEFT JOIN student_module_progress p
+       ON m.id = p.module_id AND p.student_id = ?
+     ORDER BY m.order_index ASC\`
+  )
+    .bind(studentId)
+    .all();
+
+  return c.json({
+    student: {
+      email: studentId,
+      zero_trust_Enforced: Boolean(c.req.header('Cf-Access-Authenticated-User-Email'))
+    },
+    tracks,
+    modules
+  });
+});
+
+// 2. Load Module Content & Automatically Log 'in_progress' Start Checkpoint
+app.get('/api/modules/:slug', async (c) => {
+  const studentId = c.get('studentEmail');
+  const slug = c.req.param('slug');
+
+  const mod = await c.env.DB.prepare(
+    \`SELECT id, track_id, slug, title, difficulty, estimated_minutes,
+            theory_json, lab_type, lab_briefing, lab_config_json, hint
+     FROM modules WHERE slug = ?\`
+  )
+    .bind(slug)
+    .first<any>();
+
+  if (!mod) return c.json({ error: 'Module not found' }, 404);
+
+  // Record that the student has started or resumed this module
+  await c.env.DB.prepare(
+    \`INSERT INTO student_module_progress (student_id, module_id, track_id, status, started_at, last_accessed_at)
+     VALUES (?, ?, ?, 'in_progress', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+     ON CONFLICT(student_id, module_id) DO UPDATE SET
+       last_accessed_at = CURRENT_TIMESTAMP\`
+  )
+    .bind(studentId, mod.id, mod.track_id)
+    .run();
+
+  const progress = await c.env.DB.prepare(
+    \`SELECT status, attempts, hints_used, saved_lab_state_json, time_spent_seconds, completed_at
+     FROM student_module_progress
+     WHERE student_id = ? AND module_id = ?\`
+  )
+    .bind(studentId, mod.id)
+    .first<any>();
+
+  return c.json({
+    ...mod,
+    theory_sections: JSON.parse(mod.theory_json),
+    lab_config: JSON.parse(mod.lab_config_json),
+    progress: {
+      ...progress,
+      saved_lab_state: progress?.saved_lab_state_json
+        ? JSON.parse(progress.saved_lab_state_json)
+        : {}
+    }
+  });
+});
+
+// 3. Heartbeat & Lab State Autosave (Saves terminal history, time spent, and hints used)
+app.patch('/api/modules/:id/autosave', async (c) => {
+  const studentId = c.get('studentEmail');
+  const moduleId = c.req.param('id');
+  const { elapsed_seconds, hints_used, saved_lab_state } = await c.req.json();
+
+  await c.env.DB.prepare(
+    \`UPDATE student_module_progress
+     SET time_spent_seconds = time_spent_seconds + ?,
+         hints_used = COALESCE(?, hints_used),
+         saved_lab_state_json = COALESCE(?, saved_lab_state_json),
+         last_accessed_at = CURRENT_TIMESTAMP
+     WHERE student_id = ? AND module_id = ?\`
+  )
+    .bind(
+      elapsed_seconds || 0,
+      hints_used ?? null,
+      saved_lab_state ? JSON.stringify(saved_lab_state) : null,
+      studentId,
+      moduleId
+    )
+    .run();
+
+  return c.json({ ok: true });
+});
+
+// 4. Verify Lab Submission / Flag & Record Completion in D1
+app.post('/api/modules/:id/verify', async (c) => {
+  const studentId = c.get('studentEmail');
+  const moduleId = c.req.param('id');
+  const { submission } = await c.req.json<{ submission: string }>();
+
+  const mod = await c.env.DB.prepare(
+    \`SELECT id, track_id, expected_flag FROM modules WHERE id = ?\`
+  )
+    .bind(moduleId)
+    .first<{ id: string; track_id: string; expected_flag: string }>();
+
+  if (!mod) return c.json({ error: 'Module not found' }, 404);
+
+  const isCorrect =
+    submission.trim().toLowerCase() === mod.expected_flag.trim().toLowerCase();
+
+  await c.env.DB.prepare(
+    \`INSERT INTO student_module_progress (student_id, module_id, track_id, status, attempts, completed_at, last_accessed_at)
+     VALUES (?, ?, ?, ?, 1, CASE WHEN ? THEN CURRENT_TIMESTAMP ELSE NULL END, CURRENT_TIMESTAMP)
+     ON CONFLICT(student_id, module_id) DO UPDATE SET
+       attempts = student_module_progress.attempts + 1,
+       status = CASE WHEN ? THEN 'completed' ELSE student_module_progress.status END,
+       completed_at = CASE WHEN ? THEN CURRENT_TIMESTAMP ELSE student_module_progress.completed_at END,
+       last_accessed_at = CURRENT_TIMESTAMP\`
+  )
+    .bind(
+      studentId,
+      moduleId,
+      mod.track_id,
+      isCorrect ? 'completed' : 'in_progress',
+      isCorrect ? 1 : 0,
+      isCorrect ? 1 : 0,
+      isCorrect ? 1 : 0
+    )
+    .run();
+
+  return c.json({
+    correct: isCorrect,
+    message: isCorrect
+      ? 'Verification successful. Progress committed to Cloudflare D1.'
+      : 'Verification mismatch. Review the telemetry output or check the module hint.'
+  });
+});
+
+// 5. Phase 2 Research Package Ingestion Endpoint
+app.post('/api/admin/ingest', async (c) => {
+  const body = await c.req.json();
+  await c.env.DB.prepare(
+    \`INSERT OR REPLACE INTO modules
+     (id, track_id, slug, title, difficulty, order_index, estimated_minutes, theory_json, lab_type, lab_briefing, lab_config_json, expected_flag, hint)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\`
+  )
+    .bind(
+      body.id,
+      body.track_id,
+      body.slug,
+      body.title,
+      body.difficulty,
+      body.order_index || 10,
+      body.estimated_minutes || 20,
+      JSON.stringify(body.theory_sections || []),
+      body.lab_type,
+      body.lab_briefing,
+      JSON.stringify(body.lab_config || {}),
+      body.expected_flag,
+      body.hint || ''
+    )
+    .run();
+
+  return c.json({ ingested: true, id: body.id });
+});
+
+export default app;`,
+
+      "src/client/main.tsx": `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);`,
+
+      "src/client/index.css": `@tailwind base;
+@tailwind components;
+@tailwind utilities;`,
+
+      "src/client/App.tsx": `import React, { useState, useEffect } from 'react';
+
+export default function App() {
+  const [student, setStudent] = useState<{ email: string; zero_trust_Enforced: boolean } | null>(null);
+  const [tracks, setTracks] = useState<any[]>([]);
+  const [modules, setModules] = useState<any[]>([]);
+  const [activeTrackId, setActiveTrackId] = useState<string>('track-pentest');
+  const [activeModule, setActiveModule] = useState<any | null>(null);
+
+  // Interactive Lab State
+  const [submission, setSubmission] = useState('');
+  const [feedback, setFeedback] = useState<{ correct: boolean; message: string } | null>(null);
+  const [showHint, setShowHint] = useState(false);
+  const [terminalHistory, setTerminalHistory] = useState<Array<{ cmd: string; out: string }>>([]);
+  const [cmdInput, setCmdInput] = useState('');
+  const [siemFilter, setSiemFilter] = useState('');
+  const [decodedB64, setDecodedB64] = useState('');
+  const [mwTab, setMwTab] = useState<'static' | 'sandbox' | 'decompiled'>('static');
+
+  const fetchCurriculum = async () => {
+    const res = await fetch('/api/curriculum');
+    const data = await res.json();
+    setStudent(data.student);
+    setTracks(data.tracks);
+    setModules(data.modules);
+    if (!activeModule && data.modules.length > 0) {
+      loadModule(data.modules[0].slug);
+    }
+  };
+
+  const loadModule = async (slug: string) => {
+    const res = await fetch(\`/api/modules/\${slug}\`);
+    const data = await res.json();
+    setActiveModule(data);
+    setFeedback(null);
+    setSubmission('');
+    setShowHint(false);
+    setTerminalHistory(data.progress?.saved_lab_state?.terminalHistory || []);
+    setSiemFilter('');
+    setDecodedB64('');
+    setMwTab('static');
+  };
+
+  useEffect(() => {
+    fetchCurriculum();
+  }, []);
+
+  // 30-Second Progress & Time-Spent Heartbeat
+  useEffect(() => {
+    if (!activeModule) return;
+    const timer = setInterval(() => {
+      fetch(\`/api/modules/\${activeModule.id}/autosave\`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          elapsed_seconds: 30,
+          saved_lab_state: { terminalHistory }
+        })
+      });
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [activeModule, terminalHistory]);
+
+  const runTerminalCommand = (rawCmd: string) => {
+    const clean = rawCmd.trim();
+    if (!clean || !activeModule) return;
+    const responses = activeModule.lab_config.commands || {};
+    const out =
+      responses[clean] ||
+      (clean === 'help'
+        ? \`Available commands: \${Object.keys(responses).join(', ')}\`
+        : \`bash: \${clean}: command not in scope. Type 'help'.\`);
+    const updated = [...terminalHistory, { cmd: clean, out }];
+    setTerminalHistory(updated);
+    setCmdInput('');
+  };
+
+  const decodeUtf16 = (b64: string) => {
+    try {
+      const raw = atob(b64);
+      let out = '';
+      for (let i = 0; i < raw.length; i++) {
+        if (raw.charCodeAt(i) !== 0) out += raw[i];
+      }
+      setDecodedB64(out);
+    } catch {
+      setDecodedB64('Failed to decode Base64 payload.');
+    }
+  };
+
+  const verifySubmission = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeModule || !submission.trim()) return;
+    const res = await fetch(\`/api/modules/\${activeModule.id}/verify\`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ submission })
+    });
+    const result = await res.json();
+    setFeedback(result);
+    fetchCurriculum();
+  };
+
+  const trackModules = modules.filter((m) => m.track_id === activeTrackId);
+  const completedCount = modules.filter((m) => m.status === 'completed').length;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+      <header className="border-b border-slate-800 bg-slate-900 px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="font-bold tracking-wider text-white">SECOPS // ACADEMY</span>
+          {student && (
+            <span className="text-xs font-mono bg-slate-800 text-emerald-300 px-2.5 py-0.5 rounded border border-slate-700">
+              {student.zero_trust_Enforced ? '🔒 Zero Trust: ' : '💻 Local: '}
+              {student.email}
+            </span>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          {tracks.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => {
+                setActiveTrackId(t.id);
+                const first = modules.find((m) => m.track_id === t.id);
+                if (first) loadModule(first.slug);
+              }}
+              className={\`px-3 py-1.5 rounded text-xs font-semibold transition \${
+                activeTrackId === t.id
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                  : 'text-slate-400 hover:text-white bg-slate-950'
+              }\`}
+            >
+              {t.title}
+            </button>
+          ))}
+        </div>
+
+        <div className="text-xs font-mono text-slate-400">
+          Completed: <span className="text-emerald-400 font-bold">{completedCount}/{modules.length}</span>
+        </div>
+      </header>
+
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+        {/* Sidebar */}
+        <aside className="lg:col-span-2 border-r border-slate-800 bg-slate-900/40 p-4 space-y-2">
+          <div className="text-xs font-mono uppercase text-slate-500 mb-2">Course Modules</div>
+          {trackModules.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => loadModule(m.slug)}
+              className={\`w-full text-left p-2.5 rounded border text-xs transition flex items-center justify-between \${
+                activeModule?.id === m.id
+                  ? 'bg-slate-800 border-emerald-500/50 text-white'
+                  : 'border-slate-800/80 text-slate-400 hover:bg-slate-900'
+              }\`}
+            >
+              <div>
+                <div className="font-semibold">{m.title}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">
+                  {m.difficulty} • {m.status.toUpperCase()}
+                </div>
+              </div>
+              {m.status === 'completed' && <span className="text-emerald-400 font-bold">✓</span>}
+            </button>
+          ))}
+        </aside>
+
+        {/* Theory Pane */}
+        <main className="lg:col-span-5 border-r border-slate-800 p-6 overflow-y-auto space-y-4">
+          {activeModule && (
+            <>
+              <h1 className="text-xl font-bold text-white">{activeModule.title}</h1>
+              {(activeModule.theory_sections || []).map((sec: any, idx: number) => (
+                <div key={idx} className="bg-slate-900/60 border border-slate-800 p-4 rounded-lg space-y-1.5">
+                  <h3 className="text-sm font-semibold text-emerald-300">{sec.heading}</h3>
+                  <p className="text-sm text-slate-300 whitespace-pre-line leading-relaxed">{sec.body}</p>
+                </div>
+              ))}
+            </>
+          )}
+        </main>
+
+        {/* Interactive Lab Pane */}
+        <section className="lg:col-span-5 p-6 flex flex-col justify-between overflow-y-auto space-y-4">
+          {activeModule && (
+            <div className="space-y-4">
+              <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg">
+                <div className="text-xs font-mono text-amber-400 uppercase mb-1">
+                  Lab Briefing // {activeModule.lab_type}
+                </div>
+                <p className="text-xs text-slate-300">{activeModule.lab_briefing}</p>
+              </div>
+
+              {activeModule.lab_type === 'terminal' && (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {(activeModule.lab_config.quick_commands || []).map((cmd: string, i: number) => (
+                      <button
+                        key={i}
+                        onClick={() => runTerminalCommand(cmd)}
+                        className="text-[11px] font-mono bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-slate-700 px-2 py-1 rounded"
+                      >
+                        $ {cmd}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="bg-black border border-slate-800 rounded-lg p-4 font-mono text-xs h-72 flex flex-col justify-between overflow-y-auto">
+                    <div className="space-y-2">
+                      {terminalHistory.map((h, i) => (
+                        <div key={i}>
+                          <div className="text-emerald-400">operator@kali:~$ {h.cmd}</div>
+                          <pre className="text-slate-300 whitespace-pre-wrap">{h.out}</pre>
+                        </div>
+                      ))}
+                    </div>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        runTerminalCommand(cmdInput);
+                      }}
+                      className="flex gap-2 pt-2 border-t border-slate-900"
+                    >
+                      <span className="text-emerald-400">operator@kali:~$</span>
+                      <input
+                        value={cmdInput}
+                        onChange={(e) => setCmdInput(e.target.value)}
+                        className="bg-transparent flex-1 focus:outline-none text-white"
+                        placeholder="Enter command..."
+                      />
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {activeModule.lab_type === 'siem' && (
+                <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3 font-mono text-xs">
+                  <input
+                    value={siemFilter}
+                    onChange={(e) => setSiemFilter(e.target.value)}
+                    placeholder="Filter telemetry..."
+                    className="w-full bg-slate-950 border border-slate-700 px-3 py-1.5 rounded text-white"
+                  />
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {(activeModule.lab_config.logs || [])
+                      .filter((l: any) => JSON.stringify(l).toLowerCase().includes(siemFilter.toLowerCase()))
+                      .map((l: any, i: number) => {
+                        const b64 = l.command_line.includes('-Enc ')
+                          ? l.command_line.split('-Enc ')[1]
+                          : null;
+                        return (
+                          <div key={i} className="p-2.5 bg-slate-950 rounded border border-slate-800 space-y-1">
+                            <div className="text-sky-400">{l.timestamp} | EventID={l.event_id}</div>
+                            <div className="text-slate-400">Parent: {l.parent_image}</div>
+                            <div className="text-slate-200 break-all">Cmd: {l.command_line}</div>
+                            {b64 && (
+                              <button
+                                onClick={() => decodeUtf16(b64)}
+                                className="text-[11px] bg-sky-500/20 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded mt-1"
+                              >
+                                Decode Base64
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                  {decodedB64 && (
+                    <div className="p-2.5 bg-emerald-950/40 border border-emerald-500/40 rounded text-emerald-300">
+                      Decoded: {decodedB64}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeModule.lab_type === 'hex_inspector' && (
+                <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3 font-mono text-xs">
+                  <div className="flex gap-1 bg-slate-950 p-1 rounded border border-slate-800">
+                    {(['static', 'sandbox', 'decompiled'] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setMwTab(tab)}
+                        className={\`flex-1 py-1 rounded uppercase \${
+                          mwTab === tab ? 'bg-rose-500/20 text-rose-300' : 'text-slate-400'
+                        }\`}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+                  {mwTab === 'static' && (
+                    <div className="space-y-2">
+                      <div className="text-amber-300">Imports: {(activeModule.lab_config.imports || []).join(', ')}</div>
+                      <div className="text-emerald-300">Strings: {(activeModule.lab_config.strings || []).join(' | ')}</div>
+                    </div>
+                  )}
+                  {mwTab === 'sandbox' && (
+                    <pre className="text-slate-300 whitespace-pre-wrap">{activeModule.lab_config.sandbox_trace}</pre>
+                  )}
+                  {mwTab === 'decompiled' && (
+                    <pre className="text-slate-300 whitespace-pre-wrap">{activeModule.lab_config.decompiled_c}</pre>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeModule && (
+            <div className="pt-4 border-t border-slate-800 space-y-2">
+              <form onSubmit={verifySubmission} className="flex gap-2">
+                <input
+                  value={submission}
+                  onChange={(e) => setSubmission(e.target.value)}
+                  placeholder="Submit flag / IOC..."
+                  className="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs font-mono text-white"
+                />
+                <button
+                  type="submit"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded text-xs font-semibold"
+                >
+                  Verify
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowHint(!showHint)}
+                  className="px-3 py-2 border border-slate-700 rounded text-xs text-slate-300"
+                >
+                  Hint
+                </button>
+              </form>
+              {showHint && (
+                <div className="text-xs bg-amber-500/10 border border-amber-500/30 text-amber-200 p-2.5 rounded">
+                  {activeModule.hint}
+                </div>
+              )}
+              {feedback && (
+                <div
+                  className={\`text-xs p-2.5 rounded border font-mono \${
+                    feedback.correct
+                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+                      : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
+                  }\`}
+                >
+                  {feedback.message}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}`,
+
+      "README.md": `# SecOps Academy — Cloudflare Workers + D1 + Zero Trust LMS
+
+## 1. Local Development
+\`\`\`bash
+npm install
+npm run db:init:local
+npm run preview
+\`\`\`
+Open \`http://localhost:8787\`. Locally, the Worker defaults to \`local-operator@localhost\`.
+
+## 2. Deploying to Cloudflare Edge (Workers + D1)
+1. Create your production D1 database:
+   \`\`\`bash
+   npx wrangler d1 create secops-db
+   \`\`\`
+2. Copy the \`database_id\` output from your terminal into \`wrangler.toml\`.
+3. Push the schema and starter curriculum to Cloudflare D1:
+   \`\`\`bash
+   npm run db:init:remote
+   \`\`\`
+4. Build and deploy the application:
+   \`\`\`bash
+   npm run deploy
+   \`\`\`
+
+## 3. Enabling Cloudflare Zero Trust Access
+1. Open the **Cloudflare Zero Trust Dashboard** -> **Access** -> **Applications** -> **Add an application** -> **Self-hosted**.
+2. Set your Worker's custom domain or subdomain (e.g., \`academy.arsydian.com\`).
+3. Create an Access Policy (e.g., Allow emails ending in your domain, or specific student emails via One-Time PIN / Google / GitHub).
+4. Once enabled, Cloudflare automatically injects \`Cf-Access-Authenticated-User-Email\` on every request, and \`src/worker/index.ts\` tracks each student's progress automatically in D1.`
+    };
+
+    let currentFileKey = Object.keys(PROJECT_FILES)[0];
+
+    function renderFileList() {
+      const container = document.getElementById('fileList');
+      container.innerHTML = '';
+      Object.keys(PROJECT_FILES).forEach((filePath) => {
+        const isSelected = filePath === currentFileKey;
+        const btn = document.createElement('button');
+        btn.className = `w-full text-left px-3.5 py-2.5 rounded-lg border font-mono text-xs transition flex items-center justify-between ${
+          isSelected
+            ? 'bg-slate-800 border-emerald-500/50 text-emerald-300 font-semibold'
+            : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:bg-slate-900'
+        }`;
+        btn.onclick = () => selectFile(filePath);
+        btn.innerHTML = `<span>${filePath}</span><span class="text-[10px] text-slate-500">View</span>`;
+        container.appendChild(btn);
+      });
+    }
+
+    function selectFile(filePath) {
+      currentFileKey = filePath;
+      document.getElementById('activeFileName').textContent = filePath;
+      document.getElementById('activeFileContent').textContent = PROJECT_FILES[filePath];
+      renderFileList();
+    }
+
+    function downloadActiveFile() {
+      const content = PROJECT_FILES[currentFileKey];
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentFileKey.split('/').pop();
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function copyActiveFile() {
+      navigator.clipboard.writeText(PROJECT_FILES[currentFileKey]);
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '✓ Copied';
+      setTimeout(() => (btn.textContent = 'Copy Code'), 1500);
+    }
+
+    async function downloadFullZip() {
+      const btn = document.getElementById('downloadZipBtn');
+      btn.textContent = '⏳ Packaging ZIP...';
+      const zip = new JSZip();
+      Object.entries(PROJECT_FILES).forEach(([path, content]) => {
+        zip.file(path, content);
+      });
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'secops-academy-cloudflare.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+      btn.textContent = '✓ Downloaded (.ZIP)';
+      setTimeout(() => (btn.textContent = '⬇ Download Full Project (.ZIP)'), 2500);
+    }
+
+    // Initialize viewer
+    selectFile(currentFileKey);
+  </script>
+</body>
+</html>

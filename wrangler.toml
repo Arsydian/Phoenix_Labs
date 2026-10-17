@@ -1,0 +1,23 @@
+# Cloudflare Workers with Static Assets & D1 Configuration
+# Phoenix Labs Academy Edge LMS Runtime
+name = "phoenix-labs-academy"
+main = "src/worker/index.ts"
+compatibility_date = "2026-03-01"
+
+# Serves the compiled Vite React SPA from ./dist
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
+binding = "ASSETS"
+
+# Cloudflare D1 Database Binding (Uses local SQLite with 'wrangler dev' and '--local')
+[[d1_databases]]
+binding = "DB"
+database_name = "secops-db"
+database_id = "local-dev-db" # Overwrite with production D1 UUID from 'wrangler d1 create secops-db' when deploying
+
+[vars]
+# Dedicated Admin Allowlist: Comma-separated emails authorized for /api/admin/* endpoints
+ADMIN_EMAILS = "admin@phoenixlabs.io,blackboxadmin@phoenixlabs.io,local-operator@localhost"
+# Optional: Set your Cloudflare Zero Trust Team Domain for strict JWT validation
+CF_ACCESS_TEAM_DOMAIN = ""
