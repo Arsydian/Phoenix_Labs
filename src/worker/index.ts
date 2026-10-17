@@ -373,12 +373,82 @@ app.post('/api/modules/:id/verify', async (c) => {
 
 /**
  * POST /api/admin/ingest
- * Ingestion Endpoint for Research Packages
- * Protected by dedicated admin check; parses JSON payload and commits to D1.
+ * Ingestion Endpoint for Research Packages & Full Course Bundles
+ * Protected by dedicated admin check; parses JSON payload (single module or course bundle) and commits to D1.
  */
 app.post('/api/admin/ingest', requireAdmin, async (c) => {
-  const body = (await c.req.json()) as IngestModulePayload;
+  const body = await c.req.json<any>();
 
+  // Case 1: Multi-Module Course Bundle ({ track?: ..., tracks?: [...], modules: [...] })
+  if (Array.isArray(body.modules)) {
+    if (body.modules.length === 0) {
+      return c.json({ error: 'Course bundle must contain at least one module in "modules" array' }, 400);
+    }
+
+    const statements: D1PreparedStatement[] = [];
+    const tracksToUpsert = [
+      ...(body.track ? [body.track] : []),
+      ...(Array.isArray(body.tracks) ? body.tracks : [])
+    ];
+
+    for (const trk of tracksToUpsert) {
+      if (trk && trk.id && trk.title) {
+        statements.push(
+          c.env.DB.prepare(
+            `INSERT OR REPLACE INTO tracks (id, slug, title, subtitle, description, order_index)
+             VALUES (?, ?, ?, ?, ?, ?)`
+          ).bind(
+            trk.id,
+            trk.slug || trk.id,
+            trk.title,
+            trk.subtitle || '',
+            trk.description || '',
+            trk.order_index || 1
+          )
+        );
+      }
+    }
+
+    for (const mod of body.modules as IngestModulePayload[]) {
+      if (!mod.id || !mod.track_id || !mod.slug || !mod.title || !mod.lab_type || !mod.expected_flag) {
+        return c.json(
+          { error: `Module "${mod.id || mod.title || 'unknown'}" is missing mandatory curriculum fields` },
+          400
+        );
+      }
+      statements.push(
+        c.env.DB.prepare(
+          `INSERT OR REPLACE INTO modules
+           (id, track_id, slug, title, difficulty, order_index, estimated_minutes, theory_json, lab_type, lab_briefing, lab_config_json, expected_flag, hint)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(
+          mod.id,
+          mod.track_id,
+          mod.slug,
+          mod.title,
+          mod.difficulty || 'Intermediate',
+          mod.order_index || 10,
+          mod.estimated_minutes || 20,
+          JSON.stringify(mod.theory_sections || []),
+          mod.lab_type,
+          mod.lab_briefing || '',
+          JSON.stringify(mod.lab_config || {}),
+          mod.expected_flag,
+          mod.hint || ''
+        )
+      );
+    }
+
+    await c.env.DB.batch(statements);
+    return c.json({
+      ingested: true,
+      bundle: true,
+      tracks_ingested: tracksToUpsert.length,
+      modules_ingested: body.modules.length
+    });
+  }
+
+  // Case 2: Single Module Payload
   if (!body.id || !body.track_id || !body.slug || !body.title || !body.lab_type || !body.expected_flag) {
     return c.json({ error: 'Missing mandatory curriculum fields' }, 400);
   }
@@ -409,3 +479,4 @@ app.post('/api/admin/ingest', requireAdmin, async (c) => {
 });
 
 export default app;
+

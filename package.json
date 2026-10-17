@@ -1,14 +1,15 @@
 {
   "name": "phoenix-labs-academy",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "Phoenix Labs Academy — Edge-Native Cybersecurity Operations & Learning Platform",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "db:init:local": "wrangler d1 execute secops-db --local --file=./migrations/0001_schema.sql && wrangler d1 execute secops-db --local --file=./migrations/0002_seed_starter.sql",
-    "db:init:remote": "wrangler d1 execute secops-db --remote --file=./migrations/0001_schema.sql && wrangler d1 execute secops-db --remote --file=./migrations/0002_seed_starter.sql",
+    "build:course": "tsx scripts/build-pentest-course.ts",
+    "db:init:local": "wrangler d1 execute secops-db --local --file=./migrations/0001_schema.sql && wrangler d1 execute secops-db --local --file=./migrations/0002_seed_starter.sql && wrangler d1 execute secops-db --local --file=./migrations/0003_pentest_curriculum.sql",
+    "db:init:remote": "wrangler d1 execute secops-db --remote --file=./migrations/0001_schema.sql && wrangler d1 execute secops-db --remote --file=./migrations/0002_seed_starter.sql && wrangler d1 execute secops-db --remote --file=./migrations/0003_pentest_curriculum.sql",
     "preview": "npm run build && wrangler dev",
     "deploy": "npm run build && wrangler deploy",
     "ingest": "tsx scripts/ingest.ts",

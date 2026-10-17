@@ -50,6 +50,7 @@ export const LabRegistry: React.FC<LabRegistryProps> = ({
           onRunCommand={onRunCommand}
           cmdInput={cmdInput}
           setCmdInput={setCmdInput}
+          onPopulateSubmission={onPopulateSubmission}
         />
       );
 

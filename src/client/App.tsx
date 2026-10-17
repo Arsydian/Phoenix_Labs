@@ -92,17 +92,39 @@ export default function App() {
       return;
     }
 
-    const responses = activeModule.lab_config?.commands || {};
+    const responses: Record<string, string> = activeModule.lab_config?.commands || {};
     let out = responses[clean];
+
+    // Normalized whitespace / case-insensitive fallback matching
+    if (!out) {
+      const normalizedClean = clean.replace(/\s+/g, ' ');
+      const matchedKey = Object.keys(responses).find(
+        (k) => k.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedClean.toLowerCase()
+      );
+      if (matchedKey) {
+        out = responses[matchedKey];
+      }
+    }
 
     if (!out) {
       if (clean === 'help') {
         const available = Object.keys(responses);
-        out = available.length > 0
-          ? `Scoped commands available in this lab container:\n • ${available.join('\n • ')}`
-          : "Type the target command specified in your lab briefing.";
+        out =
+          available.length > 0
+            ? `Scoped commands available in this lab container:\n • ${available.join('\n • ')}`
+            : 'Type the target command specified in your lab briefing.';
+      } else if (clean === 'whoami') {
+        out = 'operator (kali-pwnbox)';
+      } else if (clean === 'id') {
+        out = 'uid=1000(operator) gid=1000(operator) groups=1000(operator),27(sudo),142(kaboxer)';
+      } else if (clean === 'pwd') {
+        out = '/home/operator/engagement-workspace';
+      } else if (clean === 'uname -a') {
+        out = 'Linux kali-lab 6.11.2-amd64 #1 SMP PREEMPT_DYNAMIC Kali 6.11.2-1kali1 (2026-10-01) x86_64 GNU/Linux';
+      } else if (clean === 'ip a' || clean === 'ifconfig') {
+        out = `1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536\n    inet 127.0.0.1/8 scope host lo\n2: tun0: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500\n    inet 10.10.14.5/24 scope global tun0\n    Target Scope: ${activeModule.lab_config?.target_ip || '10.10.14.0/24'}`;
       } else {
-        out = `bash: ${clean}: command outside lab scope or syntax mismatch. Click a Quick-Run chip or type 'help'.`;
+        out = `bash: ${clean}: command outside lab scope or syntax mismatch. Click a Kill-Chain Step above or type 'help'.`;
       }
     }
 
@@ -165,7 +187,7 @@ export default function App() {
         completedCount={completedCount}
         totalModules={modules.length}
         onOpenIngest={() => setShowIngestModal(true)}
-        appVersion="1.1.0"
+        appVersion="1.2.0"
         viewMode={viewMode}
         onSelectView={setViewMode}
       />
@@ -192,7 +214,7 @@ export default function App() {
         />
 
         {/* Center Pane: Theory */}
-        <TheoryPane module={activeModule} />
+        <TheoryPane module={activeModule} onRunCommand={runTerminalCommand} />
 
         {/* Right Pane: Polymorphic Lab & Verification */}
         <section className="lg:col-span-5 bg-[#08090a] p-6 flex flex-col justify-between overflow-y-auto space-y-4">
@@ -216,6 +238,7 @@ export default function App() {
 
               {/* Polymorphic Lab Engine (Terminal, SIEM, Malware Inspector, Quiz) */}
               <LabRegistry
+                key={activeModule.id}
                 labType={activeModule.lab_type}
                 labConfig={activeModule.lab_config}
                 terminalHistory={terminalHistory}

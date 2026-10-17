@@ -66,3 +66,9 @@ export interface IngestModulePayload {
   expected_flag: string;
   hint?: string;
 }
+
+export interface IngestCourseBundlePayload {
+  track?: TrackRecord;
+  tracks?: TrackRecord[];
+  modules: IngestModulePayload[];
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Terminal, Search, Cpu, HelpCircle, Check } from 'lucide-react';
+import { Terminal, Search, Cpu, HelpCircle, Check, Layers } from 'lucide-react';
 
 interface ModuleItem {
   id: string;
@@ -19,6 +19,16 @@ interface ModuleSidebarProps {
   activeModuleId?: string;
   onSelectModule: (slug: string) => void;
 }
+
+const PHASE_LABELS: Record<string, string> = {
+  '0': 'Phase 0 // Readiness Diagnostic',
+  '1': 'Phase 1 // Governance & Automation',
+  '2': 'Phase 2 // Recon & Validation',
+  '3': 'Phase 3 // Web, API & AI Attacks',
+  '4': 'Phase 4 // Host Exploit & PrivEsc',
+  '5': 'Phase 5 // Pivoting, AD & Cloud',
+  '6': 'Phase 6 // Reporting & Capstone'
+};
 
 export const ModuleSidebar: React.FC<ModuleSidebarProps> = ({
   trackTitle,
@@ -42,14 +52,29 @@ export const ModuleSidebar: React.FC<ModuleSidebarProps> = ({
     }
   };
 
+  const getPhaseDigit = (title: string): string | null => {
+    const match = title.match(/^([0-6])\d{2}:/);
+    return match ? match[1] : null;
+  };
+
+  const showPhaseHeaders = modules.length > 6;
+  let lastPhaseDigit: string | null = null;
+
+  const completedInTrack = modules.filter((m) => m.status === 'completed').length;
+
   return (
-    <aside className="lg:col-span-3 xl:col-span-2 border-b lg:border-b-0 lg:border-r border-[#23252a] bg-[#08090a] p-4 space-y-4 overflow-y-auto flex flex-col justify-between">
+    <aside className="lg:col-span-3 xl:col-span-2 border-b lg:border-b-0 lg:border-r border-[#23252a] bg-[#08090a] p-4 space-y-4 overflow-y-auto flex flex-col justify-between max-h-[calc(100vh-57px)]">
       <div className="space-y-3">
         <div className="pb-2.5 border-b border-[#23252a]/60">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-[#e4f222] font-normal">
-            Domain Curriculum
+          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-[#e4f222] font-normal">
+            <span>Domain Curriculum</span>
+            <span className="text-[#8a8f98]">
+              {completedInTrack}/{modules.length} Done
+            </span>
           </div>
-          <h2 className="font-medium text-sm text-[#ffffff] mt-0.5 tracking-tight">{trackTitle || 'Curriculum Modules'}</h2>
+          <h2 className="font-medium text-sm text-[#ffffff] mt-0.5 tracking-tight">
+            {trackTitle || 'Curriculum Modules'}
+          </h2>
           {trackSubtitle && (
             <p className="text-[11px] text-[#8a8f98] mt-0.5 leading-snug tracking-tight">{trackSubtitle}</p>
           )}
@@ -59,43 +84,60 @@ export const ModuleSidebar: React.FC<ModuleSidebarProps> = ({
           {modules.map((m) => {
             const isCompleted = m.status === 'completed';
             const isSelected = activeModuleId === m.id;
+            const phaseDigit = showPhaseHeaders ? getPhaseDigit(m.title) : null;
+            const isNewPhase = phaseDigit !== null && phaseDigit !== lastPhaseDigit;
+            if (phaseDigit !== null) {
+              lastPhaseDigit = phaseDigit;
+            }
 
             return (
-              <button
-                key={m.id}
-                onClick={() => onSelectModule(m.slug)}
-                className={`w-full text-left p-3 rounded-[6px] border transition flex items-start justify-between gap-2 ${
-                  isSelected
-                    ? 'bg-[#161718] border-[#383b3f] text-[#ffffff] shadow-sm'
-                    : 'bg-[#0f1011] border-[#23252a]/80 hover:border-[#383b3f] hover:bg-[#161718]/70 text-[#d0d6e0]'
-                }`}
-              >
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className={`text-xs leading-snug truncate ${isSelected ? 'text-[#ffffff] font-medium' : 'text-[#d0d6e0]'}`}>
-                    {m.title}
+              <React.Fragment key={m.id}>
+                {isNewPhase && phaseDigit && PHASE_LABELS[phaseDigit] && (
+                  <div className="pt-2.5 pb-1 px-1 flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-[#02b8cc]">
+                    <Layers className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{PHASE_LABELS[phaseDigit]}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] text-[#8a8f98]">
-                    <span className="px-1.5 py-0.2 rounded-[4px] font-mono bg-[rgba(255,255,255,0.04)] text-[#8a8f98] border border-[#23252a]">
-                      {m.difficulty}
-                    </span>
-                    <span className="text-[#62666d]">{m.estimated_minutes}m</span>
-                    <span className="flex items-center gap-1 font-mono text-[#8a8f98]">
-                      {getLabIcon(m.lab_type)}
-                      <span className="capitalize">{m.lab_type.replace('_', ' ')}</span>
-                    </span>
-                  </div>
-                </div>
+                )}
 
-                <span
-                  className={`w-4 h-4 rounded-[4px] flex items-center justify-center text-[10px] shrink-0 mt-0.5 ${
-                    isCompleted
-                      ? 'bg-[#27a644]/15 text-[#27a644] border border-[#27a644]/40 font-bold'
-                      : 'border border-[#23252a] text-transparent'
+                <button
+                  onClick={() => onSelectModule(m.slug)}
+                  className={`w-full text-left p-2.5 rounded-[6px] border transition flex items-start justify-between gap-2 ${
+                    isSelected
+                      ? 'bg-[#161718] border-[#e4f222]/60 text-[#ffffff] shadow-sm'
+                      : 'bg-[#0f1011] border-[#23252a]/80 hover:border-[#383b3f] hover:bg-[#161718]/70 text-[#d0d6e0]'
                   }`}
                 >
-                  {isCompleted ? <Check className="w-3 h-3 text-[#27a644]" /> : ''}
-                </span>
-              </button>
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div
+                      className={`text-xs leading-snug line-clamp-2 ${
+                        isSelected ? 'text-[#ffffff] font-medium' : 'text-[#d0d6e0]'
+                      }`}
+                    >
+                      {m.title}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-[#8a8f98]">
+                      <span className="px-1.5 py-0.2 rounded-[4px] font-mono bg-[rgba(255,255,255,0.04)] text-[#8a8f98] border border-[#23252a]">
+                        {m.difficulty}
+                      </span>
+                      <span className="text-[#62666d]">{m.estimated_minutes}m</span>
+                      <span className="flex items-center gap-1 font-mono text-[#8a8f98]">
+                        {getLabIcon(m.lab_type)}
+                        <span className="capitalize">{m.lab_type.replace('_', ' ')}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <span
+                    className={`w-4 h-4 rounded-[4px] flex items-center justify-center text-[10px] shrink-0 mt-0.5 ${
+                      isCompleted
+                        ? 'bg-[#27a644]/15 text-[#27a644] border border-[#27a644]/40 font-bold'
+                        : 'border border-[#23252a] text-transparent'
+                    }`}
+                  >
+                    {isCompleted ? <Check className="w-3 h-3 text-[#27a644]" /> : ''}
+                  </span>
+                </button>
+              </React.Fragment>
             );
           })}
         </div>

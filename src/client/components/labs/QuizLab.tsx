@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HelpCircle, CheckCircle2, XCircle, Award } from 'lucide-react';
 
 interface QuizQuestion {
@@ -21,6 +21,11 @@ export const QuizLab: React.FC<QuizLabProps> = ({ labConfig, onPopulateSubmissio
   const questions = labConfig.questions || [];
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    setSelectedAnswers({});
+    setChecked(false);
+  }, [labConfig]);
 
   const handleSelect = (questionId: string, optionIdx: number) => {
     setSelectedAnswers((prev) => ({

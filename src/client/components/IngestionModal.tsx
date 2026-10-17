@@ -158,7 +158,9 @@ Because the domain controller encrypts the ticket using the target service accou
 
       setStatusMessage({
         type: 'success',
-        text: `Module "${finalPayload.title}" (${finalPayload.id}) successfully ingested into Cloudflare D1!`
+        text: data.bundle
+          ? `Course Bundle (${data.modules_ingested} modules) successfully ingested into Cloudflare D1!`
+          : `Module "${finalPayload.title}" (${finalPayload.id}) successfully ingested into Cloudflare D1!`
       });
       onModuleIngested();
       setTimeout(() => {
@@ -185,7 +187,7 @@ Because the domain controller encrypts the ticket using the target service accou
               <span>Ingest Course Material</span>
             </h3>
             <p className="text-xs text-[#8a8f98] mt-0.5">
-              Paste compiled JSON or Markdown with Frontmatter to hot-load into Phoenix Labs Academy.
+              Paste a full Course Bundle JSON, single Module JSON, or Markdown with Frontmatter to hot-load into Cloudflare D1.
             </p>
           </div>
           <button
