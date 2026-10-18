@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import jsYaml from 'js-yaml';
 import { UploadCloud, FileText, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { apiFetch } from '../api';
 
 interface IngestionModalProps {
   isOpen: boolean;
@@ -144,7 +145,7 @@ Because the domain controller encrypts the ticket using the target service accou
         finalPayload = parseMarkdownPayload(payloadText);
       }
 
-      const res = await fetch('/api/admin/ingest', {
+      const res = await apiFetch('/api/admin/ingest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(finalPayload)
@@ -231,14 +232,14 @@ Because the domain controller encrypts the ticket using the target service accou
               onClick={loadSampleJson}
               className="text-xs bg-[#161718] hover:bg-[#23252a] text-[#d0d6e0] border border-[#23252a] px-2.5 py-1 rounded-[6px] transition shadow-xs"
             >
-              Sample JSON (Malware 301)
+              Load Template JSON (Malware 301)
             </button>
             <button
               type="button"
               onClick={loadSampleMarkdown}
               className="text-xs bg-[#161718] hover:bg-[#23252a] text-[#d0d6e0] border border-[#23252a] px-2.5 py-1 rounded-[6px] transition shadow-xs"
             >
-              Sample Markdown (Pentest 301)
+              Load Template Markdown (Pentest 301)
             </button>
           </div>
         </div>
@@ -251,8 +252,8 @@ Because the domain controller encrypts the ticket using the target service accou
             rows={12}
             placeholder={
               format === 'json'
-                ? '{\n  "id": "mod-example-101",\n  "track_id": "track-pentest",\n  "title": "...",\n  "expected_flag": "..."\n}'
-                : '---\nid: mod-example-101\ntrack_id: track-pentest\nexpected_flag: "..."\n---\n# Theory Heading\nTheory body text...'
+                ? '{\n  "id": "mod-pt-701",\n  "track_id": "track-pentest",\n  "slug": "module-slug",\n  "title": "Module Title",\n  "lab_type": "terminal",\n  "expected_flag": "FLAG{...}"\n}'
+                : '---\nid: mod-pt-701\ntrack_id: track-pentest\nslug: module-slug\ntitle: "Module Title"\nlab_type: terminal\nexpected_flag: "FLAG{...}"\n---\n# Section Heading\nSection content...'
             }
             className="w-full bg-[#08090a] border border-[#23252a] rounded-[6px] p-3 font-mono text-xs text-[#d0d6e0] focus:outline-none focus:border-[#383b3f]"
           />

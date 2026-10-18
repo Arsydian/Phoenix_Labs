@@ -7,7 +7,7 @@ import './index.css';
 if (typeof window !== 'undefined') {
   (window as any).api = {
     ...((window as any).api || {}),
-    appVersion: '1.2.0'
+    appVersion: '1.2.1'
   };
 }
 

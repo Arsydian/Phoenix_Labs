@@ -15,6 +15,7 @@ import {
   Zap,
   RotateCcw
 } from 'lucide-react';
+import { apiFetch } from '../api';
 
 interface StudentProfileData {
   student: {
@@ -98,7 +99,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('/api/student/profile');
+      const res = await apiFetch('/api/student/profile');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json);

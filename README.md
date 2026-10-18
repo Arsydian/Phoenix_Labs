@@ -1,6 +1,6 @@
 # Phoenix Labs Academy
 
-![Build Version](https://img.shields.io/badge/version-1.2.0-acid--lime.svg)
+![Build Version](https://img.shields.io/badge/version-1.2.1-acid--lime.svg)
 ![Runtime](https://img.shields.io/badge/runtime-Cloudflare%20Workerd-orange.svg)
 ![Database](https://img.shields.io/badge/database-Cloudflare%20D1%20SQLite-blue.svg)
 ![Auth](https://img.shields.io/badge/auth-Zero%20Trust%20Access-purple.svg)
@@ -17,7 +17,7 @@
                       |  (Zero Trust Access Gateway / CF-WAF) |
                       +---------------------------------------+
                                           |
-                        [Cf-Access-Authenticated-User-Email]
+                        [Cf-Access-Jwt-Assertion / RS256 JWKS]
                                           |
                       +---------------------------------------+
                       |      Cloudflare Worker (Hono)         |
@@ -57,7 +57,7 @@ Phoenix Labs Academy includes a comprehensive 24-week, 22-module Enterprise Pene
 - Node.js 18+ installed
 - NPM or PNPM
 
-### Installation & Local Database Initialization
+### Installation & Local Development Preview
 ```bash
 # 1. Install dependencies
 npm install
@@ -65,14 +65,13 @@ npm install
 # 2. Build course assets (bundle, markdown files, and SQL migration)
 npm run build:course
 
-# 3. Initialize local SQLite D1 database and seed full curriculum
-npm run db:init:local
+# 3. Run automated deployment & cryptographic auth verification suite
+npm test
 
-# 4. Start local development preview on port 8787
+# 4. Start local Worker preview
 npm run preview
 ```
-Visit `http://localhost:8787` in your browser. 
-Locally, the Worker automatically defaults the user identity to `local-operator@localhost`.
+When accessed without a Cloudflare Access gateway, the Worker derives a deterministic cryptographic SHA-256 session identifier (`OP-<8-HEX>`) from the client's `X-Operator-Session` UUID header.
 
 ---
 
@@ -80,19 +79,16 @@ Locally, the Worker automatically defaults the user identity to `local-operator@
 
 Phoenix Labs Academy provides a multi-format, edge-optimized ingestion pipeline supporting single modules, full directory drops, and master course bundles.
 
-### Method A: Course Bundle JSON Ingestion (Recommended for Multi-Module Tracks)
+### Method A: Course Bundle JSON Validation & Ingestion
 ```bash
 # 1. Validate bundle integrity before committing
 npm run validate:course -- courses/penetration-testing/course-bundle.json
 
-# 2. Atomic ingest into local D1 database with automatic track replacement
+# 2. Atomic ingest into Cloudflare D1 database with automatic track replacement
 npm run ingest -- courses/penetration-testing/course-bundle.json --replace-track
-
-# 3. Ingest into remote Cloudflare edge database
-npm run ingest -- courses/penetration-testing/course-bundle.json --replace-track --remote
 ```
 
-### Method B: Batch Markdown Directory Ingestion
+### Method B: Batch Markdown Directory Validation & Ingestion
 ```bash
 # Validate and ingest an entire directory of individual module markdown files
 npm run validate:course -- courses/penetration-testing/modules
@@ -107,7 +103,7 @@ npm run ingest -- sample_module.md
 
 ### Method D: In-Browser Admin Modal
 1. Click **"+ Ingest Material"** in the top navigation bar.
-2. Select **Course Bundle JSON**, **Single Module JSON**, or **Markdown with Frontmatter**.
+2. Select **JSON Payload** or **Markdown with YAML**.
 3. Review or paste the payload.
 4. Click **"Ingest to Cloudflare D1"** for atomic edge insertion via `POST /api/admin/ingest`.
 
@@ -117,49 +113,40 @@ npm run ingest -- sample_module.md
 
 Phoenix Labs Academy includes a dedicated **Student Profile** view tracking learner progression across all operational domains:
 - **Global Mastery Metrics**: Overall curriculum completion percentage, total labs mastered vs in-flight, total time invested, and verification attempt accuracy.
-- **Cross-Course Curricula Breakdown**: Granular status tracking across every ingested track (Penetration Testing, Threat Hunting, Malware Engineering, Capstone Triage).
+- **Cross-Course Curricula Breakdown**: Granular status tracking across every ingested track (Penetration Testing, Threat Hunting, Malware Engineering).
 - **Direct Lab Launch**: One-click deep link to jump directly into any specific module workbench from the profile matrix.
-- **Edge Telemetry Audit Log**: Real-time session access log queried from Cloudflare D1 via `GET /api/student/profile`.
+- **Edge Telemetry Audit Log**: Real-time session access log queried via `GET /api/student/profile`.
 
 ---
 
 ## 4. Deploying to Cloudflare Production
 
-### Step 1: Provision Cloudflare D1 Database
-```bash
-npx wrangler d1 create secops-db
-```
-Copy the returned `database_id` UUID into `wrangler.toml`:
-```toml
-[[d1_databases]]
-binding = "DB"
-database_name = "secops-db"
-database_id = "PASTE_YOUR_D1_UUID_HERE"
-```
-
-### Step 2: Push Relational Migrations to Edge
-```bash
-npm run db:init:remote
-```
-
-### Step 3: Configure Admin Allowlist in `wrangler.toml`
-Set your authorized administrator emails in `wrangler.toml`:
-```toml
-[vars]
-ADMIN_EMAILS = "admin@phoenixlabs.io,your.email@phoenixlabs.io"
-```
-
-### Step 4: Build & Deploy
+### Step 1: One-Push Deployment (Cloudflare Workers Builds or CLI)
+`wrangler.toml` is pre-configured with `[build] command = "npm run build"` and `[assets]` static routing. Deploying via GitHub integration or CLI works out-of-the-box:
 ```bash
 npm run deploy
 ```
 
+### Step 2: Attach Cloudflare D1 Database Binding (Optional — Auto-Bootstrapped)
+In the **Cloudflare Dashboard** -> **Workers & Pages** -> **phoenix-labs-academy** -> **Settings** -> **Bindings**:
+1. Add a **D1 database** binding with Variable name `DB`.
+2. On the first incoming request, the Worker automatically initializes the `tracks`, `modules`, `students`, and `student_module_progress` tables and seeds all 26 curriculum modules into D1.
+
+### Step 3: Configure Zero Trust & Admin Secrets
+Configure authentication and authorization secrets via Wrangler (never commit secrets or emails into `wrangler.toml`):
+```bash
+npx wrangler secret put ADMIN_EMAILS
+npx wrangler secret put ADMIN_API_TOKEN
+npx wrangler secret put CF_ACCESS_TEAM_DOMAIN
+npx wrangler secret put CF_ACCESS_AUD
+```
+
 ---
 
-## 4. Enabling Cloudflare Zero Trust Access
+## 5. Enabling Cloudflare Zero Trust Access
 
 1. Navigate to the **Cloudflare Zero Trust Dashboard** -> **Access** -> **Applications**.
 2. Click **Add an application** -> **Self-hosted**.
-3. Specify your custom Worker domain (e.g. `academy.phoenixlabs.io`).
-4. Set up an Access Policy allowing your organization's emails via One-Time PIN, Google Workspace, or GitHub OAuth.
-5. Cloudflare automatically signs and injects the `Cf-Access-Authenticated-User-Email` header into incoming requests. Phoenix Labs Academy transparently maps this to each student's progress and evaluates the `ADMIN_EMAILS` allowlist for curriculum ingestion.
+3. Specify your custom Worker domain.
+4. Set up an Access Policy allowing authorized operators via One-Time PIN, Google Workspace, or GitHub OAuth.
+5. Cloudflare signs and injects the `Cf-Access-Jwt-Assertion` RS256 JWT header into incoming requests, which the Worker verifies cryptographically against `https://<CF_ACCESS_TEAM_DOMAIN>/cdn-cgi/access/certs` using WebCrypto.

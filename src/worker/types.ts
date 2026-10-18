@@ -3,14 +3,19 @@
  */
 
 export type Bindings = {
-  DB: D1Database;
+  DB?: D1Database;
   ASSETS: Fetcher;
   ADMIN_EMAILS?: string;
+  ADMIN_API_TOKEN?: string;
   CF_ACCESS_TEAM_DOMAIN?: string;
+  CF_ACCESS_AUD?: string;
 };
 
 export type Variables = {
+  studentId: string;
   studentEmail: string;
+  displayName: string;
+  zeroTrustEnforced: boolean;
   isAdmin: boolean;
 };
 

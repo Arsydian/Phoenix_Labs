@@ -5,6 +5,7 @@ import { TheoryPane } from './components/TheoryPane';
 import { LabRegistry } from './components/labs/LabRegistry';
 import { IngestionModal } from './components/IngestionModal';
 import { StudentProfile } from './components/StudentProfile';
+import { apiFetch } from './api';
 import { HelpCircle, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 export default function App() {
@@ -28,7 +29,7 @@ export default function App() {
   // 1. Fetch Curriculum & Student Identity
   const fetchCurriculum = async () => {
     try {
-      const res = await fetch('/api/curriculum');
+      const res = await apiFetch('/api/curriculum');
       const data = await res.json();
       setStudent(data.student);
       setTracks(data.tracks || []);
@@ -45,7 +46,7 @@ export default function App() {
   // 2. Load Single Module
   const loadModule = async (slug: string) => {
     try {
-      const res = await fetch(`/api/modules/${slug}`);
+      const res = await apiFetch(`/api/modules/${slug}`);
       const data = await res.json();
       setActiveModule(data);
       setFeedback(null);
@@ -68,7 +69,7 @@ export default function App() {
     if (!activeModule) return;
 
     const timer = setInterval(() => {
-      fetch(`/api/modules/${activeModule.id}/autosave`, {
+      apiFetch(`/api/modules/${activeModule.id}/autosave`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -152,7 +153,7 @@ export default function App() {
     if (!activeModule || !submission.trim()) return;
 
     try {
-      const res = await fetch(`/api/modules/${activeModule.id}/verify`, {
+      const res = await apiFetch(`/api/modules/${activeModule.id}/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ submission })
@@ -187,7 +188,7 @@ export default function App() {
         completedCount={completedCount}
         totalModules={modules.length}
         onOpenIngest={() => setShowIngestModal(true)}
-        appVersion="1.2.0"
+        appVersion="1.2.1"
         viewMode={viewMode}
         onSelectView={setViewMode}
       />
