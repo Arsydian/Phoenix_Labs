@@ -188,7 +188,7 @@ export default function App() {
         completedCount={completedCount}
         totalModules={modules.length}
         onOpenIngest={() => setShowIngestModal(true)}
-        appVersion="1.2.1"
+        appVersion="1.2.2"
         viewMode={viewMode}
         onSelectView={setViewMode}
       />

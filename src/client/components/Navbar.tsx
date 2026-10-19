@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   completedCount,
   totalModules,
   onOpenIngest,
-  appVersion = '1.2.1',
+  appVersion = '1.2.2',
   viewMode = 'workbench',
   onSelectView
 }) => {

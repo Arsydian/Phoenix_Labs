@@ -80,7 +80,7 @@ async function runVerificationSuite() {
   // ---------------------------------------------------------------------------
   const pkg = JSON.parse(fs.readFileSync(path.resolve('package.json'), 'utf-8'));
   const expectedVersion = pkg.version;
-  assert(expectedVersion === '1.2.1', `Expected package.json version 1.2.1, got ${expectedVersion}`);
+  assert(expectedVersion === '1.2.2', `Expected package.json version 1.2.2, got ${expectedVersion}`);
 
   const readme = fs.readFileSync(path.resolve('README.md'), 'utf-8');
   const mainTsx = fs.readFileSync(path.resolve('src/client/main.tsx'), 'utf-8');
